@@ -1,0 +1,73 @@
+\documentclass[a4paper,11pt,twoside]{article}
+%\documentclass[a4paper,11pt,twoside,se]{article}
+
+\usepackage{UmUStudentReport}
+\usepackage{verbatim}   % Multi-line comments using \begin{comment}
+\usepackage{courier}    % Nicer fonts are used. (not necessary)
+\usepackage{pslatex}    % Also nicer fonts. (not necessary)
+\usepackage[pdftex]{graphicx}   % allows including pdf figures
+\usepackage{listings}
+\usepackage{pgf-umlcd}
+\usepackage{blindtext}
+\usepackage{enumitem}
+%\usepackage{lmodern}   % Optional fonts. (not necessary)
+%\usepackage{tabularx}
+%\usepackage{microtype} % Provides some typographic improvements over default settings
+%\usepackage{placeins}  % For aligning images with \FloatBarrier
+%\usepackage{booktabs}  % For nice-looking tables
+%\usepackage{titlesec}  % More granular control of sections.
+
+% DOCUMENT INFO
+% =============
+\department{Department of Computing Science}
+\coursename{Parallel Programming 7.5 p}
+\coursecode{5DV152}
+\title{Exercises, Chapter/Topic 1}
+\author{Lorenz Gerber ({\tt{dv15lgr@cs.umu.se}} {\tt{lozger03@student.umu.se}})}
+\date{2017-01-26}
+%\revisiondate{2016-01-18}
+\instructor{Lars Karlsson / Mikael Ränner}
+
+
+% DOCUMENT SETTINGS
+% =================
+\bibliographystyle{plain}
+%\bibliographystyle{ieee}
+\pagestyle{fancy}
+\raggedbottom
+\setcounter{secnumdepth}{2}
+\setcounter{tocdepth}{2}
+%\graphicspath{{images/}}   %Path for images
+
+\usepackage{float}
+\floatstyle{ruled}
+\newfloat{listing}{thp}{lop}
+\floatname{listing}{Listing}
+
+
+
+% DEFINES
+% =======
+%\newcommand{\mycommand}{<latex code>}
+
+% DOCUMENT
+% ========
+\begin{document}
+\lstset{language=C}
+\maketitle
+\thispagestyle{empty}
+\newpage
+\tableofcontents
+\thispagestyle{empty}
+\newpage
+
+\clearpage
+\pagenumbering{arabic}
+
+\section{Introduction}
+This report is part of the mandatory coursework. It describes the solutions for several chosen exercises from the course book.
+
+\addcontentsline{toc}{section}{\refname}
+\bibliography{references}
+
+\end{document}
