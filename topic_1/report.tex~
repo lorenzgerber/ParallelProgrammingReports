@@ -67,13 +67,29 @@
 \section{Introduction}
 This report is part of the mandatory coursework. It describes the solutions for several chosen exercises from the course book \cite{pacheco2011}.
 \section{1.1 - Formulas for block partitioning}
-The number of `workpackages' is \verb+n+ with indices \verb+i+. The number of available cores is \verb+p+ with indicies \verb+k+.
-The aim is to state a formula for choosing \verb+i=1+ and \verb+i=n+. The number of cores \verb+p+ shall be kept as variable in the forumla. The book text hints to start with the case when \verb+p+ is evenly divisible by \verb+p+. 
- 
+The overwhelming idea is to load balance \verb+p+ number of cores with \verb +n+ tasks. Here, we use two functions to obtain block partitioning using a \verb+for loop+ :
+\begin{verbatim}
+for (my_i = my_first_i; my_i < my_last_i; my_i++)
+\end{verbatim}
+
+The functions \verb+my_first_i+ and \verb+my_last_i+ are used to set the limits in the loop. Besides \verb+n, i and p+ we also need an index for the actual core: \verb+p+. It is understood that indicies \verb+i+ and \verb+k+ start at \verb+0+. The book text hints to start with the case when \verb+n+ is evenly divisible by \verb+p+:
+\begin{verbatim}
+my_first_i = k * n / p
+my_last_i = (k + 1) * n / p
+\end{verbatim}
+Testing this expression for \verb!n = 10, p = 5, k = {0, 1, ..., 4}! seems to be correct. Now when  \verb+n+ is not even divisible by \verb+p+, one has to distribute the \verb+n mod p+ tasks for example on the first \verb+n mod p+ cores:
+\begin{verbatim}
+my_first_i = k * n / p + ( k < n mod p ? k : n mod p )
+my_last_i = (k + 1) * n / p + (k + 1 < n mod p ? k + 1 : n mod p)  
+\end{verbatim}
+Testing this expression for \verb!n = 9, p = 5, k = {0, 1, ..., 4}! gives the correct results.
+  
 \section{1.2 - Modify 1.1 with non-uniform costs}
+The calls happen in parallel. It can be still assumed that \verb+k = 0+ will get the first call, \verb+k = 1+ the second and so on. However, this doesn't really matter as the processing time increases monotonously. Hence the solution in \textit{1.1} will still provide the correct solution. 
 
 \section{1.3 - Tree-structured global sum}
- 
+
+
 \section{1.4 - Alternative algorithm for 1.3}
 
 \section{1.5 - Generalization of 1.3 and 1.4}

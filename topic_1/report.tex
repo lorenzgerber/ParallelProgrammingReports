@@ -67,12 +67,12 @@
 \section{Introduction}
 This report is part of the mandatory coursework. It describes the solutions for several chosen exercises from the course book \cite{pacheco2011}.
 \section{1.1 - Formulas for block partitioning}
-The overwhelming idea is to load balance \verb+p+ number of cores with \verb +n+ tasks. Here, we use two functions to obtain block partitioning using a \verb+for loop+ :
+The overwhelming idea is to load balance \verb+p+ number of cores with \verb+n+ tasks. Here, we use two functions to obtain block partitioning using a \verb+for loop+ :
 \begin{verbatim}
 for (my_i = my_first_i; my_i < my_last_i; my_i++)
 \end{verbatim}
 
-The functions \verb+my_first_i+ and \verb+my_last_i+ are used to set the limits in the loop. Besides \verb+n, i and p+ we also need an index for the actual core: \verb+p+. It is understood that indicies \verb+i+ and \verb+k+ start at \verb+0+. The book text hints to start with the case when \verb+n+ is evenly divisible by \verb+p+:
+The functions \verb+my_first_i+ and \verb+my_last_i+ are used to set the limits in the loop. Besides \verb+n, i and p+ we also need an index for the actual core: \verb+k+. It is understood that indicies \verb+i+ and \verb+k+ start at \verb+0+. The book text hints to start with the case when \verb+n+ is evenly divisible by \verb+p+:
 \begin{verbatim}
 my_first_i = k * n / p
 my_last_i = (k + 1) * n / p
@@ -89,6 +89,23 @@ The calls happen in parallel. It can be still assumed that \verb+k = 0+ will get
 
 \section{1.3 - Tree-structured global sum}
 
+\begin{verbatim}
+divisor = 2
+core_diff = 1
+
+while(core_diff < p){
+    if(k % divisor == 0)
+        receive and add from k + core_diff
+    else if (k % divisor == divisor / 2)
+        send to k - core_diff
+
+    divisor * 2
+    core_diff * 2
+}
+
+if( k == 0 )
+    return final result
+\end{verbatim}
 
 \section{1.4 - Alternative algorithm for 1.3}
 
