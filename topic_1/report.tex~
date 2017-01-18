@@ -65,7 +65,21 @@
 \pagenumbering{arabic}
 
 \section{Introduction}
-This report is part of the mandatory coursework. It describes the solutions for several chosen exercises from the course book.
+This report is part of the mandatory coursework. It describes the solutions for several chosen exercises from the course book \cite{pacheco2011}.
+\section{1.1 - Formulas for block partitioning}
+The number of `workpackages' is \verb+n+ with indices \verb+i+. The number of available cores is \verb+p+ with indicies \verb+k+.
+The aim is to state a formula for choosing \verb+i=1+ and \verb+i=n+. The number of cores \verb+p+ shall be kept as variable in the forumla. The book text hints to start with the case when \verb+p+ is evenly divisible by \verb+p+. 
+ 
+\section{1.2 - Modify 1.1 with non-uniform costs}
+
+\section{1.3 - Tree-structured global sum}
+ 
+\section{1.4 - Alternative algorithm for 1.3}
+
+\section{1.5 - Generalization of 1.3 and 1.4}
+
+\section{1.6 - Cost anlaysis of global sum algorithms}
+
 
 \addcontentsline{toc}{section}{\refname}
 \bibliography{references}
