@@ -96,8 +96,9 @@ core_diff = 1
 while(core_diff < p){
     if(k % divisor == 0)
         receive and add from k + core_diff
-    else if (k % divisor == divisor / 2)
+    else 
         send to k - core_diff
+        break
 
     divisor * 2
     core_diff * 2
@@ -109,10 +110,74 @@ if( k == 0 )
 
 \section{1.4 - Alternative algorithm for 1.3}
 
+\begin{verbatim}
+counter = 2
+bitmask = 1
+
+while ( counter < p ){
+    if(k bitwiseXor bitmask > k)
+        receive and add from k bitwiseXor bitmask
+    else
+        send to k bitwiseXor bitmask
+        break
+
+    bitwiseLeft bitmask
+    counter * 2
+}
+
+if( k == 0)
+    return final result
+
+\end{verbatim}
+
+
+
 \section{1.5 - Generalization of 1.3 and 1.4}
 
-\section{1.6 - Cost anlaysis of global sum algorithms}
+\subsection{Generalized form or 1.3}
+\begin{verbatim}
+divisor = 2
+core_diff = 1
 
+while(core_diff < p){
+    if(k % divisor == 0)
+        if (k + core_diff < p)  
+            receive and add from k + core_diff
+    else 
+        send to k - core_diff
+        break
+
+    divisor * 2
+    core_diff * 2
+}
+
+if( k == 0 )
+    return final result
+\end{verbatim}
+
+\subsection{Generalized form of 1.4} 
+\begin{verbatim}
+counter = 2
+bitmask = 1
+
+while ( counter < p ){
+    if(k bitwiseXor bitmask > k)
+        if (k bitwiseXor bitmask < p)
+            receive and add from k bitwiseXor bitmask
+    else
+        send to k bitwiseXor bitmask
+        break
+
+    bitwiseLeft bitmask
+    counter * 2
+}
+
+if( k == 0)
+    return final result
+\end{verbatim}
+
+\section{1.6 - Cost anlaysis of global sum algorithms}
+The number of receives and additions for core 0 is in the original `pseudo-code global sum' \verb+p-1+ and in the tree-structured global sum \verb+ceiling(log2(p))+.
 
 \addcontentsline{toc}{section}{\refname}
 \bibliography{references}
