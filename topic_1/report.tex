@@ -115,8 +115,7 @@ else
     send to k - core_diff
     break
 \end{verbatim}
-
-Further, there need to be some control structure to know when to finish. Here it was decided to use a \verb+while+ loop with the comparison \verb+core_diff < p+, where \verb+p+ is the number of cores in the system. In each iteration \verb+divisor+ and \verb+core_diff+ are doubled. Moreover, before exit, the core \verb+k = 0+ should return the result. Below is the complete code listing that incorporates the the described features:
+From figure 1.1, it can also be seen that \verb+send+ is the last operation a core does. Afterwards, it can terminate. This is solved here with a break statement after send. Further, there need to be some control structure to know when to finish. Here it was decided to use a \verb+while+ loop with the comparison \verb+core_diff < p+, where \verb+p+ is the number of cores in the system. In each iteration \verb+divisor+ and \verb+core_diff+ are doubled. Moreover, before exit, the core \verb+k = 0+ should return the result. Below is the complete code listing that incorporates the the described features:
 
 \begin{verbatim}
 divisor = 2
@@ -138,13 +137,14 @@ if( k == 0 )
 \end{verbatim}
 
 \section{1.4 - Alternative algorithm for 1.3}
-Here the aim was to modify the pseudo code from 1.3 to use bit shift operaters, basically to obtain \verb+k+ indices for send and receive. In the book, the idea is visually described using a table (page 13, exercise 1.4). The bitwise \verb+Xor+ operator is applied to a binary \verb+bitmask+ with the initial value $001_{2}$ and the binary value of each \verb+k+. This will flip the last bit in every \verb+k+ value, hence always two \verb+k+ values exchange their initial value with eachother. This can be exploited to use the core \verb+k+ whose value becomes lower by the bitshift as the \verb+sender+ and the other one in the flipping pair as \verb+receiver+.     
+Here the aim was to modify the pseudo code from 1.3 to use bit-wise operaters, basically to obtain \verb+k+ indices for \verb+send+ and \verb+receive+. In the book, the idea is visually described using a table (page 13, exercise 1.4). The bitwise \verb+Xor+ operator is applied to a binary \verb+bitmask+ with the initial value $001_{2}$ and the binary value of each \verb+k+. This will flip the last bit in every \verb+k+ value, resulting in two \verb+k+'s exchanging their initial value with eachother. This can be exploited to use the core \verb+k+ whose value becomes lower by the bitshift as the \verb+sender+ and the other one in the `flipping pair' as \verb+receiver+. After the first iteration, the \verb+bitmask+ is bit-shifted to the left, hence $001_{2}$ becomes $010_{2}$. Now follows the next iteration round with applying Xor to all remaining \verb+k+'s.      
+
+Here the value of the bitmask itself can be used in a \verb+while+ loop to determine the end of the iteration using the comparison: \verb+bitmask =< p+. Also in this version, after the while loop the core \verb+k = 0+ needs to return the result.
 
 \begin{verbatim}
-counter = 2
 bitmask = 1
 
-while ( counter < p ){
+while ( bitmask =< p ){
     if(k bitwiseXor bitmask > k)
         receive and add from k bitwiseXor bitmask
     else
@@ -152,7 +152,6 @@ while ( counter < p ){
         break
 
     bitwiseLeft bitmask
-    counter * 2
 }
 
 if( k == 0)
@@ -163,6 +162,9 @@ if( k == 0)
 
 
 \section{1.5 - Generalization of 1.3 and 1.4}
+Here it was required to modify 1.3 and 1.4 to a more generalized form that could also handle the case when \verb+p+ is not a power of two value.
+Basically the same code could be maintained with just an additional \verb+if+ control sequence around the `receive' statement that handles the case when there is no neighbour in the graph that could send the result. 
+
 
 \subsection{Generalized form or 1.3}
 \begin{verbatim}
@@ -187,10 +189,9 @@ if( k == 0 )
 
 \subsection{Generalized form of 1.4} 
 \begin{verbatim}
-counter = 2
 bitmask = 1
 
-while ( counter < p ){
+while ( bitmask =< p ){
     if(k bitwiseXor bitmask > k)
         if (k bitwiseXor bitmask < p)
             receive and add from k bitwiseXor bitmask
@@ -199,7 +200,6 @@ while ( counter < p ){
         break
 
     bitwiseLeft bitmask
-    counter * 2
 }
 
 if( k == 0)

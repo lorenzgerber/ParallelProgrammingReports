@@ -67,12 +67,12 @@
 \section{Introduction}
 This report is part of the mandatory coursework. It describes the solutions for several chosen exercises from the course book \cite{pacheco2011}.
 \section{1.1 - Formulas for block partitioning}
-The overwhelming idea is to load balance \verb+p+ number of cores with \verb +n+ tasks. Here, we use two functions to obtain block partitioning using a \verb+for loop+ :
+The overwhelming idea is to load balance \verb+p+ number of cores with \verb+n+ tasks. Here, we use two functions to obtain block partitioning using a \verb+for loop+ :
 \begin{verbatim}
 for (my_i = my_first_i; my_i < my_last_i; my_i++)
 \end{verbatim}
 
-The functions \verb+my_first_i+ and \verb+my_last_i+ are used to set the limits in the loop. Besides \verb+n, i and p+ we also need an index for the actual core: \verb+p+. It is understood that indicies \verb+i+ and \verb+k+ start at \verb+0+. The book text hints to start with the case when \verb+n+ is evenly divisible by \verb+p+:
+The functions \verb+my_first_i+ and \verb+my_last_i+ are used to set the limits in the loop. Besides \verb+n, i and p+ we also need an index for the actual core: \verb+k+. It is understood that indicies \verb+i+ and \verb+k+ start at \verb+0+. The book text hints to start with the case when \verb+n+ is evenly divisible by \verb+p+:
 \begin{verbatim}
 my_first_i = k * n / p
 my_last_i = (k + 1) * n / p
@@ -85,17 +85,129 @@ my_last_i = (k + 1) * n / p + (k + 1 < n mod p ? k + 1 : n mod p)
 Testing this expression for \verb!n = 9, p = 5, k = {0, 1, ..., 4}! gives the correct results.
   
 \section{1.2 - Modify 1.1 with non-uniform costs}
-The calls happen in parallel. It can be still assumed that \verb+k = 0+ will get the first call, \verb+k = 1+ the second and so on. However, this doesn't really matter as the processing time increases monotonously. Hence the solution in \textit{1.1} will still provide the correct solution. 
+In my opinion, this question can be understood in several different ways:
+
+\subsection{First attempt}
+Let there be 10 tasks (\verb+n+) that take \verb+2, 4, ..., 20 ms+ to finish, and there are 3 cores (\verb+p+). So one could try to distribute the tasks onto the cores that the standard deviation of total runtimes for all cores is as little as possible. A possible solution for the above described actual setting would be:\\ $i_{9}$ to $k_{0}$, $i_{8}$ to $k_{1}$, $i_{7}$ to $k_{2}$. Then,  $i_{0}$ to $k_{0}$, $i_{1}$ to $k_{1}$, $i_{2}$ to $k_{2}$. And $i_{6}$ to $k_{0}$, $i_{5}$ to $k_{1}$, $i_{4}$ to $k_{2}$. Finally, $i_{3}$ to $k_{0}$. This somehow works, makes sense and I guess it would be possible to devise a general formula for this.\\
+However, it does not adhere to the actual question: \textit{How would you change your answer to the preceding question if ...}. And the preceding question is: \textit{Devise formulas for the functions that calculate `my\_first\_i' and `my\_last\_i' in the global sum example.} Hence, to make formulas for first \verb+i+ and last \verb+i+ the tasks should be assigned to the cores in a consecutive sequence. Therefore, second attempt:
+
+\subsection{Second attempt}
+If the tasks have to be in a consecutive order, I would calculate the total amount of time all tasks together will take. That should be $n^{2}+n$. This can be divided by the number of cores available $\frac{n^{2}+n}{p}=r$. Now I would write an algorithm that iterates through \verb+n+ and assigns the tasks to the cores until \verb+r+ is `reached'. Probably, there would be some edge case handling needed and it could make sense to iterate from high to low \verb+i+'s.\\
+To come up with a non-iterative approach for \verb+my_first_i+ and \verb+my_last_i+ formulas will be more mathematically involved. I could think of an approach where one needs to solve partial integrals of total time elapsed. \\
+However, this way of asking the question somehow does not make much sense: The solution will be less optimal than the one devised in the first idea. So I read again the question and came up with again another interpretation:
+
+\subsection{Third attempt}
+The question states \verb+i = k+ requires \verb!k + 1! times as much time than call \verb+i = 0+. Somehow this does not make sense. Because in this formula, to define the time, there need to be equal indices k as indices i. That would mean that the problem is by definition embarrasingly parallel.
+
+From the wording of the question in the second part \textit{the first \textbf{call} takes..., the second \textbf{call} requires...} etc., I conclude that the author means that every time the algorithm is executed it will take inherently (in the current case) 2 milliseconds longer to finish. Maybe it should not be \verb+k+, as index for cores, but just an arbitrary index to construct a number series. This brings me to the fourth and last idea:
+
+\subsection{Fourth attempt}
+If every call to the algorithm takes inherently longer, the task's \verb+i+ are actually independent of the time it takes to run and one can not start executing the `long running' \verb+i+'s as described in attempt 1 and 2. In this case, it's obvious that the solution for 1.1 is also valid here. 
 
 \section{1.3 - Tree-structured global sum}
+The aim was to write pseudo code that calculates the tree structured global sum described on page 5. The book hints to use a variable called \verb+divisor+ that is initialized with the value \verb+2+ and another variable called \verb+core_difference+ that is initialized with the value \verb+1+. It was proposed that \verb+divisor+ is doubled in each iteration and that \verb+n mod divisor+ is used to determine \verb+send = 0+ and \verb+receive = 1+. From figure 1.1 in the book, one can see that this rule works. Note especially that core \verb+k = 0+ will read in each iteration as \verb+0 mod x = 0+ is true for any \verb+x+. Further, the book proposes that \verb+core_diff+, when doubled in each iteration, can be used to describe the difference in value between a core pair that is involved in a `send/receive' operation. The correctness of this can also be verified in figure 1.1 of the book.
 
+Assuming that \verb+k+ is the core index, this allows already to write the main part of the algorithm:
+\begin{verbatim}
+if( k % divisor == 0 )
+    receive and add from k + core_diff
+else
+    send to k - core_diff
+    break
+\end{verbatim}
+From figure 1.1, it can also be seen that \verb+send+ is the last operation a core does. Afterwards, it can terminate. This is solved here with a break statement after send. Further, there need to be some control structure to know when to finish. Here it was decided to use a \verb+while+ loop with the comparison \verb+core_diff < p+, where \verb+p+ is the number of cores in the system. In each iteration \verb+divisor+ and \verb+core_diff+ are doubled. Moreover, before exit, the core \verb+k = 0+ should return the result. Below is the complete code listing that incorporates the the described features:
+
+\begin{verbatim}
+divisor = 2
+core_diff = 1
+
+while(core_diff < p){
+    if( k % divisor == 0 )
+        receive and add from k + core_diff
+    else 
+        send to k - core_diff
+        break
+
+    divisor * 2
+    core_diff * 2
+}
+
+if( k == 0 )
+    return final result
+\end{verbatim}
 
 \section{1.4 - Alternative algorithm for 1.3}
+Here the aim was to modify the pseudo code from 1.3 to use bit-wise operaters, basically to obtain \verb+k+ indices for \verb+send+ and \verb+receive+. In the book, the idea is visually described using a table (page 13, exercise 1.4). The bitwise \verb+Xor+ operator is applied to a binary \verb+bitmask+ with the initial value $001_{2}$ and the binary value of each \verb+k+. This will flip the last bit in every \verb+k+ value, resulting in two \verb+k+'s exchange their initial value with eachother. This can be exploited to use the core \verb+k+ whose value becomes lower by the bitshift as the \verb+sender+ and the other one in the `flipping pair' as \verb+receiver+. After the first iteration, the \verb+bitmask+ is bit-shifted to the left, hence $001_{2}$ becomes $010_{2}$. Now follows the next iteration round with applying Xor to all remaining \verb+k+'s.      
+
+Here the value of the bitmask itself can be used in a \verb+while+ loop to determine the end of the iteration using the comparison: \verb+bitmask =< p+. Also in this version, after the while loop the core \verb+k = 0+ needs to return the result.
+
+\begin{verbatim}
+bitmask = 1
+
+while ( bitmask =< p ){
+    if(k bitwiseXor bitmask > k)
+        receive and add from k bitwiseXor bitmask
+    else
+        send to k bitwiseXor bitmask
+        break
+
+    bitwiseLeft bitmask
+}
+
+if( k == 0)
+    return final result
+
+\end{verbatim}
+
+
 
 \section{1.5 - Generalization of 1.3 and 1.4}
+Here it was required to modify 1.3 and 1.4 to a more generalized form that could also handle the case when \verb+p+ is not a power of two value.
+Basically the same code could be maintained with just an additional \verb+if+ control sequence around the `receive' statement that handles the case when there is no neighbour in the graph that could send the result. 
+
+
+\subsection{Generalized form or 1.3}
+\begin{verbatim}
+divisor = 2
+core_diff = 1
+
+while(core_diff < p){
+    if(k % divisor == 0)
+        if (k + core_diff < p)  
+            receive and add from k + core_diff
+    else 
+        send to k - core_diff
+        break
+
+    divisor * 2
+    core_diff * 2
+}
+
+if( k == 0 )
+    return final result
+\end{verbatim}
+
+\subsection{Generalized form of 1.4} 
+\begin{verbatim}
+bitmask = 1
+
+while ( bitmask =< p ){
+    if(k bitwiseXor bitmask > k)
+        if (k bitwiseXor bitmask < p)
+            receive and add from k bitwiseXor bitmask
+    else
+        send to k bitwiseXor bitmask
+        break
+
+    bitwiseLeft bitmask
+}
+
+if( k == 0)
+    return final result
+\end{verbatim}
 
 \section{1.6 - Cost anlaysis of global sum algorithms}
-
+The number of receives and additions for core 0 is in the original `pseudo-code global sum' \verb+p-1+ and in the tree-structured global sum \verb+ceiling(log2(p))+.
 
 \addcontentsline{toc}{section}{\refname}
 \bibliography{references}
