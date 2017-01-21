@@ -66,7 +66,16 @@
 
 \section{Introduction}
 This report is part of the mandatory coursework. It describes the solutions for several chosen exercises from the course book \cite{pacheco2011}.
-
+\section{2.4 - Counting pages}
+$2^{20}$
+\section{2.8 - Hardware multithreading and caches}
+Caching operates on whole cache lines. Hence if the chance that another process/thread changes something in a specific cache line increases with cache size and number of processes/threads. The specific situation that can happen is called `false sharing': When one process changes data in a cache line, there is no possibilty to check or know for another process which data exactly was changed. It can very well be the case that to the current process unrelated data was changed and a cache reload would not be needed. However, cache has to be reloaded. 
+\section{2.10 - Communication overhead}
+a) $\frac{\frac{10^{12}}{p}}{10^{6}}+ 10^{9}(p-1)10^{-9}$
+\section{2.16 - Speedup efficiency}
+\section{2.19 - Scalability}
+\section{2.20 - Linear speedup and strong scalability}
+\section{2.23 - Alternative algorithm for computing histogram}
 \addcontentsline{toc}{section}{\refname}
 \bibliography{references}
 
