@@ -10,6 +10,7 @@
 \usepackage{pgf-umlcd}
 \usepackage{blindtext}
 \usepackage{enumitem}
+\usepackage{amsfonts}
 %\usepackage{lmodern}   % Optional fonts. (not necessary)
 %\usepackage{tabularx}
 %\usepackage{microtype} % Provides some typographic improvements over default settings
@@ -92,9 +93,19 @@ Let there be 10 tasks (\verb+n+) that take \verb+2, 4, ..., 20 ms+ to finish, an
 However, it does not adhere to the actual question: \textit{How would you change your answer to the preceding question if ...}. And the preceding question is: \textit{Devise formulas for the functions that calculate `my\_first\_i' and `my\_last\_i' in the global sum example.} Hence, to make formulas for first \verb+i+ and last \verb+i+ the tasks should be assigned to the cores in a consecutive sequence. Therefore, second attempt:
 
 \subsection{Second attempt}
-If the tasks have to be in a consecutive order, I would calculate the total amount of time all tasks together will take. That should be $n^{2}+n$. This can be divided by the number of cores available $\frac{n^{2}+n}{p}=r$. Now I would write an algorithm that iterates through \verb+n+ and assigns the tasks to the cores until \verb+r+ is `reached'. Probably, there would be some edge case handling needed and it could make sense to iterate from high to low \verb+i+'s.\\
-To come up with a non-iterative approach for \verb+my_first_i+ and \verb+my_last_i+ formulas will be more mathematically involved. I could think of an approach where one needs to solve partial integrals of total time elapsed. \\
-However, this way of asking the question somehow does not make much sense: The solution will be less optimal than the one devised in the first idea. So I read again the question and came up with again another interpretation:
+If the tasks have to be in a consecutive order, formulas for \verb+my_first_i+ and \verb+my_last_i+ have to be derived.
+
+If the tasks shall be processed in order, one can express the total elapsed time for a sequential solution as $N = n^{2} + n$ (where \verb+n+ is the number of tasks) and simlar at any intermediate point as $I = i^{2} + i$ (where \verb+i+ is the index of \verb+n+). The average time that every core should be busy, can be expressed as the total time elapsed divided by number of cores: $M\frac{N}{p}$. Now one can devise an equality for intermediate \verb+i+ values: $i^{2}+i = k*M$ where \verb+k+ is the core index. This is a quadratic equation that can be solved for \verb+i+ in $\mathbb{N}$ (hence, results should be rounded to the closest integer value). The obtained values are the breaks between a sequence of tasks. 
+\begin{itemize}
+\item For \verb+my_last_i+, the above expression is modified to  $i^{2}+i=(k + 1)M$
+\item $my\_last\_i(i_{q})$ for $q=0$ is by definition \verb+0+, and for $i_{q}, q > 0$ it is $my\_last\_i(i_{q-1}) + 1$. 
+\end{itemize}
+ 
+For practical usage, the above formula has to be reformulated to have a single occurence of \verb+i+ on one side of the equation:
+\begin{equation}
+i=\frac{\sqrt{4kn^{2}+4kn+4n^{2}+4n+p}\sqrt{p}-p}{2p}
+\end{equation}
+However, this solution seems to me not very meaningful as it produces longer run-times than the solution in the first attempt. Therefore I tried to look again more detailed into how the question is formulated and came up with:
 
 \subsection{Third attempt}
 The question states \verb+i = k+ requires \verb!k + 1! times as much time than call \verb+i = 0+. Somehow this does not make sense. Because in this formula, to define the time, there need to be equal indices k as indices i. That would mean that the problem is by definition embarrasingly parallel.
