@@ -76,22 +76,22 @@ The overwhelming idea is to load balance \verb+p+ number of cores with \verb+n+ 
 for (my_i = my_first_i; my_i < my_last_i; my_i++)
 \end{verbatim}
 
-The functions \verb+my_first_i+ and \verb+my_last_i+ are used to set the limits in the loop. Besides \verb+n, i and p+ we also need an index for the actual core: \verb+k+. It is understood that indices \verb+i+ and \verb+k+ start at \verb+0+. The book text hints to start with the case when \verb+n+ is evenly divisible by \verb+p+:
+The functions \verb+my_first_i+ and \verb+my_last_i+ are used to set the limits in the loop. Besides $n$, $i$ and $p$ we also need an index for the actual core: $k$. It is understood that indices $i$ and $k$ start at $0$. The book text hints to start with the case when $n$ is evenly divisible by $p$:
 \begin{verbatim}
 my_first_i = k * n / p
 my_last_i = (k + 1) * n / p
 \end{verbatim}
-Testing this expression for \verb!n = 10, p = 5, k = {0, 1, ..., 4}! seems to be correct. Now when  \verb+n+ is not even divisible by \verb+p+, one has to distribute the \verb+n mod p+ tasks for example on the first \verb+n mod p+ cores:
+Testing this expression for $n = 10, p = 5, k = \{0, 1, ..., 4\}$ seems to be correct. Now when  $n$ is not even divisible by $p$, one has to distribute the $n \mod p$ tasks for example on the first $+n \mod p$ cores:
 \begin{verbatim}
 my_first_i = k * n / p + ( k < n mod p ? k : n mod p )
 my_last_i = (k + 1) * n / p + (k + 1 < n mod p ? k + 1 : n mod p)  
 \end{verbatim}
-Testing this expression for \verb!n = 9, p = 5, k = {0, 1, ..., 4}! gives the correct results.
+Testing this expression for $n = 9, p = 5, k = \{0, 1, ..., 4\}$ gives the correct results.
   
 \section{1.2 - Modify 1.1 with non-uniform costs}
-Here the answers for exercise 1.1 have to be modified for the case that each call to \verb+i+ takes 2ms seconds longer starting at $i_{0} = 2ms$, $i_{1} = 4ms$, $i_{2}=6ms$, etc. Hence new formulas for \verb+my_first_i+ and \verb+my_last_i+ have to be derived.
+Here the answers for exercise 1.1 have to be modified for the case that each call to $i$ takes 2ms seconds longer starting at $i_{0} = 2ms$, $i_{1} = 4ms$, $i_{2}=6ms$, etc. Hence new formulas for \verb+my_first_i+ and \verb+my_last_i+ have to be derived.
 
-Here the total elapsed time $N = n^{2} + n$ (where \verb+n+ is the number of tasks) was used. In a similar way, any intermediate point can be expressed as $I = i^{2} + i$ (where \verb+i+ is the index of \verb+n+). The average time that every core should be busy, can be described as the total time elapsed divided by number of cores: $M\frac{N}{p}$. Now one can devise an equality for intermediate \verb+i+ values: $i^{2}+i = k*M$ where \verb+k+ is the core index. This is a quadratic equation that can be solved for \verb+i+ in $\mathbb{N}$ (hence, results should be rounded to the closest integer value). The obtained values are the breaks between a sequence of tasks. 
+Here the total elapsed time $N = n^{2} + n$ (where $n$ is the number of tasks) was used. In a similar way, any intermediate point can be expressed as $I = i^{2} + i$ (where $i$ is the index of $n$). The average time that every core should be busy, can be described as the total time elapsed divided by number of cores: $M\frac{N}{p}$. Now one can devise an equality for intermediate $i$ values: $i^{2}+i = k*M$ where $k$ is the core index. This is a quadratic equation that can be solved for $i$ in $\mathbb{N}$ (hence, results should be rounded to the closest integer value). The obtained values are the breaks between a sequence of tasks. 
 \begin{itemize}
 \item For \verb+my_last_i+, the above expression is modified to  $i^{2}+i=(k + 1)M$
 \item $my\_last\_i(i_{q})$ for $q=0$ is by definition \verb+0+, and for $i_{q}, q > 0$ it is $my\_last\_i(i_{q-1}) + 1$. 
@@ -103,9 +103,9 @@ i=\frac{\sqrt{4kn^{2}+4kn+4n^{2}+4n+p}\sqrt{p}-p}{2p}
 \end{equation*}
 
 \section{1.3 - Tree-structured global sum}
-The aim was to write pseudo code that calculates the tree structured global sum described on page 5. The book hints to use a variable called \verb+divisor+ that is initialized with the value \verb+2+ and another variable called \verb+core_difference+ that is initialized with the value \verb+1+. It was proposed that \verb+divisor+ is doubled in each iteration and that \verb+n mod divisor+ is used to determine \verb+send = 0+ and \verb+receive = 1+. From figure 1.1 in the book, one can see that this rule works. Note especially that core \verb+k = 0+ will read in each iteration as \verb+0 mod x = 0+ is true for any \verb+x+. Further, the book proposes that \verb+core_diff+, when doubled in each iteration, can be used to describe the difference in value between a core pair that is involved in a `send/receive' operation. The correctness of this can also be verified in figure 1.1 of the book.
+The aim was to write pseudo code that calculates the tree structured global sum described on page 5. The book hints to use a variable called \verb+divisor+ that is initialized with the value $2$ and another variable called \verb+core_difference+ that is initialized with the value $1$. It was proposed that \verb+divisor+ is doubled in each iteration and that \verb+n mod divisor+ is used to determine \verb+send = 0+ and \verb+receive = 1+. From figure \textit{1.1} in the book \cite[p.5]{pacheco2011}, one can see that this rule works. Note especially that core $k = 0$ will read in each iteration as $0 \mod x = 0$ is true for any $x$. Further, the book proposes that \verb+core_diff+, when doubled in each iteration, can be used to describe the difference in value between a core pair that is involved in a `send/receive' operation. The correctness of this can also be verified in figure 1.1 of the book \cite[p.5]{pacheco2011}.
 
-Assuming that \verb+k+ is the core index, this allows already to write the main part of the algorithm:
+Assuming that $k$ is the core index, this allows already to write the main part of the algorithm:
 \begin{verbatim}
 if( k % divisor == 0 )
     receive and add from k + core_diff
@@ -114,7 +114,7 @@ else
     break
 \end{verbatim}
 
-From figure 1.1, it can also be seen that \verb+send+ is the last operation a core does. Afterwards, it terminates. This is solved here with a break statement after send. Further, there need to be some control structure to know when to finish. Here it was decided to use a \verb+while+ loop with the comparison \verb+core_diff < p+, where \verb+p+ is the number of cores in the system. In each iteration \verb+divisor+ and \verb+core_diff+ are doubled. Moreover, before exit, the core \verb+k = 0+ should return the result. Below is the complete code listing that incorporates the the described features:
+From figure 1.1 \cite[p.5]{pacheco2011}, it can also be seen that \verb+send+ is the last operation a core does. Afterwards, it terminates. This is solved here with a \verb+break+ statement after send. Further, there need to be some control structure to know when to finish. Here it was decided to use a \verb+while+ loop with the comparison \verb+core_diff < p+, where $p$ is the number of cores in the system. In each iteration \verb+divisor+ and \verb+core_diff+ are doubled. Moreover, before exit, the core $k = 0$ should return the result. Below is the complete code listing that incorporates the the described features:
 
 \begin{verbatim}
 divisor = 2
@@ -136,9 +136,9 @@ if( k == 0 )
 \end{verbatim}
 
 \section{1.4 - Alternative algorithm for 1.3}
-Here the aim was to modify the pseudo code from 1.3 using bit-wise operators, basically to obtain \verb+k+ indices for \verb+send+ and \verb+receive+. In the book, the idea is visually described using a table (page 13, exercise 1.4). The bit-wise \verb+Xor+ operator is applied to a binary \verb+bitmask+ with the initial value $001_{2}$ and the binary value of each \verb+k+. This will flip the last bit in every \verb+k+ value, resulting in two \verb+k+'s exchanging their initial value with each other. This can be exploited to use the core \verb+k+ whose value becomes lower by the bit-shift as the \verb+sender+ and the other one in the `flipping pair' as \verb+receiver+. After the first iteration, the \verb+bitmask+ is bit-shifted to the left, hence $001_{2}$ becomes $010_{2}$. Now follows the next iteration round with applying \verb+Xor+ to all remaining \verb+k+'s.      
+Here the aim was to modify the pseudo code from 1.3 using bit-wise operators, basically to obtain $k$ indices for \verb+send+ and \verb+receive+. In the book, the idea is visually described using a table \cite[p.13]{pacheco2011}. The bit-wise \verb+Xor+ operator is applied to a binary \verb+bitmask+ with the initial value $001_{2}$ and the binary value of each $k$. This will flip the last bit in every $k$ value, resulting in two $k$'s exchanging their initial value with each other. This can be exploited to use the core $k$ whose value becomes lower by the bit-shift as the \verb+sender+ and the other one in the `flipping pair' as \verb+receiver+. After the first iteration, the \verb+bitmask+ is bit-shifted to the left, hence $001_{2}$ becomes $010_{2}$. Now follows the next iteration round with applying \verb+Xor+ to all remaining $k$'s.      
 
-Here the value of the bitmask itself can be used in a \verb+while+ loop to determine the end of the iteration using the comparison: \verb+bitmask =< p+. Also in this version, after the while loop the core \verb+k = 0+ needs to return the result.
+Here the value of the bitmask itself can be used in a \verb+while+ loop to determine the end of the iteration using the comparison: \verb+bitmask =< p+. Also in this version, after the while loop the core $k = 0$ needs to return the result.
 
 \begin{verbatim}
 bitmask = 1
@@ -161,8 +161,8 @@ if( k == 0)
 
 
 \section{1.5 - Generalization of 1.3 and 1.4}
-Here it was required to modify 1.3 and 1.4 to a more generalized form that could also handle the case when \verb+p+ is not a power of two value.
-Basically the same code was used just an additional \verb+if+ control sequence around the `receive' statement that handles the case when there is no neighbor in the graph that could send the result. This situation is verified by comparing \verb+k+ with \verb+p+.  
+When $p$ is not a power of two, the above shown algorithms will not work. More specifically, there will occur the situation that a core is waiting to receive, but there is actually no other core pairing up, hence the program will not terminate. Here it was required to modify 1.3 and 1.4 to a more generalized form that could also handle the case when $p$ is not a power of two value.
+Basically the same code was used just an additional \verb+if+ control sequence around the `receive' statement that handles the case when there is no neighbor in the graph that could send the result. This situation is verified by comparing \verb$k$ with $p$.  
 
 
 \subsection{Generalized form or 1.3}
@@ -187,7 +187,7 @@ if( k == 0 )
 \end{verbatim}
 
 \subsection{Generalized form of 1.4}
-A similar approach is possible to modify the bitwise-operation-global-sum. Instead of \verb+k+, the resulting value of \verb+k bitwiseXor bitmask+ is compared to \verb+p+ for deciding if a receive operation needs to take place.
+A similar approach is possible to modify the bitwise-operation-global-sum. Instead of $k$, the resulting value of \verb+k bitwiseXor bitmask+ is compared to $p$ for deciding if a receive operation needs to take place.
 
 \begin{verbatim}
 bitmask = 1
@@ -216,6 +216,19 @@ The tree structured global sum represents an inverted binary tree. The number of
 \begin{equation*}
 \ceil*{log_{2}(p)}
 \end{equation*}
+
+\begin{table}[]
+  \centering
+  \caption{Shows the number of additions core $k_{0}$ executes for algorithms \textit{global sum} and \textit{tree-structured global sum}.}
+  \label{tab:globalsums}
+  \begin{tabular}{lcccccccccc}
+    cores $n$                            & 2 & 4 & 8 & 16 & 32 & 64 & 128 & 256 & 512 & 1024 \\ \hline
+    global sum, $p-1$                    & 1 & 3 & 7 & 15 & 31 & 63 & 127 & 255 & 511 & 1023 \\
+    tree-structured gs, $\ceil*{log_{2}(p)}$ & 1 & 2 & 3 & 4  & 5  & 6  & 7   & 8   & 9   & 10
+\end{tabular}
+\end{table}
+
+Table \ref{tab:globalsums} shows a comparison of actual receive operations for the $k_{0}$ core with $2, 4,...,1024$ cores in total.
 
 \addcontentsline{toc}{section}{\refname}
 \bibliography{references}
