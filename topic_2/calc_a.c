@@ -10,7 +10,14 @@
 int main (void) {
   
   FILE *f = NULL;
-  if((f = fopen("data.txt", "w"))<0){
+  if((f = fopen("speedup.txt", "w"))<0){
+    perror("fopen");
+    exit(EXIT_FAILURE);
+  }
+
+  FILE *g = NULL;
+
+  if((g = fopen("efficiency.txt", "w"))<0){
     perror("fopen");
     exit(EXIT_FAILURE);
   }
@@ -19,22 +26,27 @@ int main (void) {
   double p = START_P;
 
   double speedUp = 0;
+  double efficiency = 0;
 
   for(int i = 0 ; i < N_LENGTH; i++){
     for(int j = 0; j < P_LENGTH; j++){
 
       speedUp = n*n / ((n * n) /  p  + (log(p)/log(2)));
+      efficiency = n*n / (p * (n * n) / p + (log(p)/log(2))); 
       fprintf(f, "%lf\t", speedUp);
-      printf("SpeedUp for n = %lf p = %lf is %lf\n", n, p, speedUp);
+      fprintf(g, "%lf\t", efficiency);
+      printf("n = %lf, p = %lf, speedup = %lf, efficiency = %lf\n", n, p, speedUp, efficiency);
       p*=2;
     }
 
     fprintf(f, "\n");
+    fprintf(g, "\n");
     n*=2;
     p = START_P;
   }
 
   fclose(f);
+  fclose(g);
   return 0;
 }
 

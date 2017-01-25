@@ -1,29 +1,60 @@
+par(mfrow=c(2,2))
 setwd("~/git/ParallelProgrammingReports/topic_2")
-test<-read.table(file='data.txt', sep='\t', dec='.')
-test<-test[,1:8]
-par(mfcol=c(2,1))
-plot(c(10,20,40,80,160,320), test[,1], type='l', ylim=c(0,130), xlab="size of n", ylab="Speedup")
-points(c(10,20,40,80,160,320), test[,2], type='l', col='red')
-points(c(10,20,40,80,160,320), test[,3], type='l',col='blue')
-points(c(10,20,40,80,160,320), test[,4], type='l', col='green')
-points(c(10,20,40,80,160,320), test[,5], type='l', col='purple')
-points(c(10,20,40,80,160,320), test[,6], type='l', col='pink')
-points(c(10,20,40,80,160,320), test[,7], type='l', col='yellow')
-points(c(10,20,40,80,160,320), test[,8], type='l', col='brown')
-legend(250, 100, 
+speed<-read.table(file='speedup.txt', sep='\t', dec='.')
+speed<-speed[,1:8]
+
+plot(c(10,20,40,80,160,320), speed[,1], type='l', ylim=c(0,130), xlab="size of n", ylab="Speedup")
+points(c(10,20,40,80,160,320), speed[,2], type='l', col='red')
+points(c(10,20,40,80,160,320), speed[,3], type='l',col='blue')
+points(c(10,20,40,80,160,320), speed[,4], type='l', col='green')
+points(c(10,20,40,80,160,320), speed[,5], type='l', col='purple')
+points(c(10,20,40,80,160,320), speed[,6], type='l', col='pink')
+points(c(10,20,40,80,160,320), speed[,7], type='l', col='yellow')
+points(c(10,20,40,80,160,320), speed[,8], type='l', col='brown')
+legend(200, 100, 
        c('p = 1', 'p = 2', 'p = 4','p = 8','p = 16','p = 32','p = 64','p = 128' ), 
        lty=c(1,1,1,1,1,1,1,1),
        lwd=c(2.5, 2.5, 2.5, 2.5, 2.5, 2.5, 2.5, 2.5),
        col=c('black', 'red', 'blue', 'green', 'purple', 'pink', 'yellow', 'brown'))
 
-plot(c(1,2,4,8,16,32, 64, 128), test[1,], type='l', ylim=c(0,130), xlab="size of p", ylab="Speedup")
-points(c(1,2,4,8,16,32, 64, 128), test[2,], type='l', col='red')
-points(c(1,2,4,8,16,32, 64, 128), test[3,], type='l',col='blue')
-points(c(1,2,4,8,16,32, 64, 128), test[4,], type='l', col='green')
-points(c(1,2,4,8,16,32, 64, 128), test[5,], type='l', col='purple')
-points(c(1,2,4,8,16,32, 64, 128), test[6,], type='l', col='pink')
+plot(c(1,2,4,8,16,32, 64, 128), speed[1,], type='l', ylim=c(0,130), xlab="size of p", ylab="Speedup")
+points(c(1,2,4,8,16,32, 64, 128), speed[2,], type='l', col='red')
+points(c(1,2,4,8,16,32, 64, 128), speed[3,], type='l',col='blue')
+points(c(1,2,4,8,16,32, 64, 128), speed[4,], type='l', col='green')
+points(c(1,2,4,8,16,32, 64, 128), speed[5,], type='l', col='purple')
+points(c(1,2,4,8,16,32, 64, 128), speed[6,], type='l', col='pink')
 
 legend(0, 100, 
+       c('n = 10', 'n = 20', 'n = 40','n = 80','n = 160','n = 320'), 
+       lty=c(1,1,1,1,1,1),
+       lwd=c(2.5, 2.5, 2.5, 2.5, 2.5, 2.5),
+       col=c('black', 'red', 'blue', 'green', 'purple', 'pink'))
+
+eff<-read.table(file='efficiency.txt', sep='\t', dec='.')
+eff<-eff[,1:8]
+
+plot(c(10,20,40,80,160,320), eff[,1], type='l', ylim=c(0.9,1), xlab="size of n", ylab="efficiency")
+points(c(10,20,40,80,160,320), eff[,2], type='l', col='red')
+points(c(10,20,40,80,160,320), eff[,3], type='l',col='blue')
+points(c(10,20,40,80,160,320), eff[,4], type='l', col='green')
+points(c(10,20,40,80,160,320), eff[,5], type='l', col='purple')
+points(c(10,20,40,80,160,320), eff[,6], type='l', col='pink')
+points(c(10,20,40,80,160,320), eff[,7], type='l', col='yellow')
+points(c(10,20,40,80,160,320), eff[,8], type='l', col='brown')
+legend(150, 0.98, 
+       c('p = 1', 'p = 2', 'p = 4','p = 8','p = 16','p = 32','p = 64','p = 128' ), 
+       lty=c(1,1,1,1,1,1,1,1),
+       lwd=c(2.5, 2.5, 2.5, 2.5, 2.5, 2.5, 2.5, 2.5),
+       col=c('black', 'red', 'blue', 'green', 'purple', 'pink', 'yellow', 'brown'))
+
+plot(c(1,2,4,8,16,32, 64, 128), eff[1,], type='l', ylim=c(0.9,1), xlab="size of p", ylab="efficiency")
+points(c(1,2,4,8,16,32, 64, 128), eff[2,], type='l', col='red')
+points(c(1,2,4,8,16,32, 64, 128), eff[3,], type='l',col='blue')
+points(c(1,2,4,8,16,32, 64, 128), eff[4,], type='l', col='green')
+points(c(1,2,4,8,16,32, 64, 128), eff[5,], type='l', col='purple')
+points(c(1,2,4,8,16,32, 64, 128), eff[6,], type='l', col='pink')
+
+legend(0, 0.94, 
        c('n = 10', 'n = 20', 'n = 40','n = 80','n = 160','n = 320'), 
        lty=c(1,1,1,1,1,1),
        lwd=c(2.5, 2.5, 2.5, 2.5, 2.5, 2.5),
