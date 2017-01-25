@@ -15,6 +15,14 @@
   publisher = {Studentlitteratur}
 }
 
+@book{pacheco2011,
+  title     = {An Introduction to Parallel Programming},
+  author    = {Pacheco, P.S.},
+  isbn      = 9789123742605,
+  year      = 2011,
+  publisher = {Morgan Kaufman}
+}
+
 @book{horstman2014,
   title     = {{BIG JAVA} Early Objects},
   author    = {Horstman, C. S},

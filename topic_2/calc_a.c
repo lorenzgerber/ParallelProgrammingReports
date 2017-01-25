@@ -1,0 +1,40 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <math.h>
+
+#define START_N 10
+#define START_P 1
+#define N_LENGTH 6
+#define P_LENGTH 8
+
+int main (void) {
+  
+  FILE *f = NULL;
+  if((f = fopen("data.txt", "w"))<0){
+    perror("fopen");
+    exit(EXIT_FAILURE);
+  }
+
+  double n = START_N;
+  double p = START_P;
+
+  double speedUp = 0;
+
+  for(int i = 0 ; i < N_LENGTH; i++){
+    for(int j = 0; j < P_LENGTH; j++){
+
+      speedUp = n*n / ((n * n) /  p  + (log(p)/log(2)));
+      fprintf(f, "%lf\t", speedUp);
+      printf("SpeedUp for n = %lf p = %lf is %lf\n", n, p, speedUp);
+      p*=2;
+    }
+
+    fprintf(f, "\n");
+    n*=2;
+    p = START_P;
+  }
+
+  fclose(f);
+  return 0;
+}
+
