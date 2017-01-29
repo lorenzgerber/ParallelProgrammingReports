@@ -130,7 +130,7 @@ For cyclic distribution, also \verb+local_start_i+ and \verb+local_end_i+ will b
 
 
 \subsection{Block cyclic distribution}
-For block cyclic distribution, \verb+local_start_i+ and \verb+local_end_i+ are used with an interleaved double \verb+for loop+.  The outer having loop having the 
+For block cyclic distribution, \verb+local_start_i+ and \verb+local_end_i+ are used with an interleaved double \verb+for loop+.  The outer loop will use the above mentioned functions with a step-size of \verb+comm_sz * block_size+. The inner loop will start at \verb+local_start_i+ until \verb+local_start_i + block_size+ or \verb+n+, whichever is smaller.
 
 
 \section{3.8 - Tree-structured algorithms for scatter and gather}

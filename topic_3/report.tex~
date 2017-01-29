@@ -114,7 +114,7 @@ double calc_local_b(int my_rank, double a, double b, int n, int comm_sz){
 Given is a vector \verb+x+ of length \verb+n+ with the indices \verb+i+. The number of processes used is \verb+comm_sz+ and the index of the current process is \verb+my_rank+. 
 
 \subsection{Block distribution}
-For a block distribution, we devise the functions \verb+local_start_i+ and \verb+local_end_i+.
+For a block distribution, we devise the functions \verb+local_start_i+ and \verb+local_end_i+. These can be used in \verb+for loop+. 
 
 \begin{verbatim}
 local_start_i:
@@ -126,8 +126,11 @@ local_end_i:
 \end{verbatim}
 
 \subsection{Cyclic distribution}
+For cyclic distribution, also \verb+local_start_i+ and \verb+local_end_i+ will be determined. They can be used in a \verb+for loop+ with step size \verb+comm_sz+.
+
 
 \subsection{Block cyclic distribution}
+For block cyclic distribution, \verb+local_start_i+ and \verb+local_end_i+ are used with an interleaved double \verb+for loop+.  The outer having loop having the 
 
 
 \section{3.8 - Tree-structured algorithms for scatter and gather}
