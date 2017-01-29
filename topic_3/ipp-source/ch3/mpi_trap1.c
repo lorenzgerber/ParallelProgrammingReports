@@ -28,6 +28,13 @@
 /* We'll be using MPI routines, definitions, etc. */
 #include <mpi.h>
 
+/* calculate local_a */
+double calc_local_a(int my_rank, double a, double b, int n, int comm_sz);
+
+/* calculate local_b */ 
+double calc_local_b(int my_rank, double a, double b, int n, int comm_sz);
+
+
 /* Calculate local integral  */
 double Trap(double left_endpt, double right_endpt, int trap_count, 
    double base_len);    
@@ -36,7 +43,7 @@ double Trap(double left_endpt, double right_endpt, int trap_count,
 double f(double x); 
 
 int main(void) {
-   int my_rank, comm_sz, n = 1024, local_n;   
+  int my_rank, comm_sz, n = 1024, local_n;   
    double a = 0.0, b = 3.0, h, local_a, local_b;
    double local_int, total_int;
    int source; 
@@ -50,14 +57,42 @@ int main(void) {
    /* Find out how many processes are being used */
    MPI_Comm_size(MPI_COMM_WORLD, &comm_sz);
 
+   
    h = (b-a)/n;          /* h is the same for all processes */
    local_n = n/comm_sz;  /* So is the number of trapezoids  */
-
+   //rest_n = n%comm_sz;
+   
    /* Length of each process' interval of
     * integration = local_n*h.  So my interval
     * starts at: */
-   local_a = a + my_rank*local_n*h;
-   local_b = local_a + local_n*h;
+   //if(my_rank < rest_n){
+   //  local_a = a + my_rank*local_n*h + my_rank*h;
+   //    } else {
+   //  local_a = a + my_rank*local_n*h + rest_n*h;
+   //  local_a += (my_rank-rest_n) * h;
+   //}
+
+   
+
+   //local_a = a + my_rank*local_n*h; // old code
+
+   /*
+   if(my_rank == (comm_sz+1)){
+     local_b = a + my_rank+1*local_n*h;
+   } else {
+     if((my_rank+1) < rest_n){
+       local_b = a + (my_rank+1)*local_n*h + (my_rank+1)*h;
+     } else {
+       local_b = a + (my_rank+1)*local_n*h + rest_n*h;
+       local_b += ((my_rank+1)-rest_n) * h;
+     }
+   }
+   */
+
+   local_a = calc_local_a(my_rank, a, b, n, comm_sz);
+   local_b = calc_local_b(my_rank, a, b, n, comm_sz);
+   
+     //local_b = local_a + local_n*h; // old code
    local_int = Trap(local_a, local_b, local_n, h);
 
    /* Add up the integrals calculated by each process */
@@ -126,3 +161,42 @@ double Trap(
 double f(double x) {
    return x*x;
 } /* f */
+
+
+double calc_local_a(int my_rank, double a, double b, int n, int comm_sz){
+  double local_a = 0;
+  double h = 0;
+  int local_n = 0;
+  int rest_n  = 0;
+  
+  h = (b-a)/n;
+  local_n = n/comm_sz;
+  
+  rest_n = n%comm_sz;
+
+  if(my_rank < rest_n){
+    local_a = a + my_rank*local_n*h + my_rank*h;
+  } else {
+    local_a = a + my_rank*local_n*h + rest_n*h;
+    local_a += (my_rank-rest_n) * h;
+  }
+
+  return local_a;
+
+}
+
+
+double calc_local_b(int my_rank, double a, double b, int n, int comm_sz){
+  double h;
+  int local_n;
+
+  h = (b-a)/n;
+  local_n = n/comm_sz;
+
+  if (my_rank == (comm_sz-1)){
+    return a + my_rank+1*local_n*h;
+  } else {
+    return calc_local_a(my_rank+1, a, b, n, comm_sz);
+  }
+}
+

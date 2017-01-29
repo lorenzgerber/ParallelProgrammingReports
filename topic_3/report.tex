@@ -24,7 +24,7 @@
 \coursecode{5DV152}
 \title{Exercises, Chapter/Topic 1}
 \author{Lorenz Gerber ({\tt{dv15lgr@cs.umu.se}} {\tt{lozger03@student.umu.se}})}
-\date{2017-01-26}
+\date{2017-02-16}
 %\revisiondate{2016-01-18}
 \instructor{Lars Karlsson / Mikael Ränner}
 
@@ -66,6 +66,86 @@
 
 \section{Introduction}
 This report is part of the mandatory coursework. It describes the solutions for several chosen exercises from the course book \cite{pacheco2011}.
+
+\section{3.2 - Generalization of algorithm for trapezoidal rule}
+Two functions to adapt the \textit{trapezoidal rule} for \verb+calc\_local\_a+ and \verb+calc\_local\_b+ were written and tested with the source code from the book (\textit{mpi\_trap.c}).
+
+\begin{verbatim}
+double calc_local_a(int my_rank, double a, double b, int n, int comm_sz){
+  double local_a = 0;
+  double h = 0;
+  int local_n = 0;
+  int rest_n  = 0;
+
+  h = (b-a)/n;
+  local_n = n/comm_sz;
+
+  rest_n = n%comm_sz;
+
+  if(my_rank < rest_n){
+    local_a = a + my_rank*local_n*h + my_rank*h;
+  } else {
+    local_a = a + my_rank*local_n*h + rest_n*h;
+    local_a += (my_rank-rest_n) * h;
+  }
+
+  return local_a;
+
+}
+
+
+double calc_local_b(int my_rank, double a, double b, int n, int comm_sz){
+  double h;
+  int local_n;
+
+  h = (b-a)/n;
+  local_n = n/comm_sz;
+
+  if (my_rank == (comm_sz-1)){
+    return a + my_rank+1*local_n*h;
+  } else {
+    return calc_local_a(my_rank+1, a, b, n, comm_sz);
+  }
+}
+
+\end{verbatim}
+
+\section{3.6 - Array distributions}
+
+\section{3.8 - Tree-structured algorithms for scatter and gather}
+
+\section{3.9 - Vector scaling and dot product}
+takes a while to solve,
+requires programming
+
+\section{3.11 - Prefix sums}
+takes a qhile to solve
+requires programming
+
+\section{3.13 - Generalization of vector scaling and dot product}
+
+\section{3.16 - Diagram for a butterfly implementation of allgather}
+
+\section{3.18 - Derived data types}
+takes a while to solve
+requires programming
+
+\section{3.20 - Pack and unpack}
+requires programming
+
+
+\section{3.21 - Matrix-vector multiplication}
+takes a while to solve
+requires programming
+requires testing
+
+\section{3.22 - Timing the trapezoidal rule}
+takes a while to solve
+Requires programming
+requires testing
+
+\section{3.27 - Speedup and efficienciy of odd-even sort}
+
 
 \addcontentsline{toc}{section}{\refname}
 \bibliography{references}
