@@ -24,7 +24,7 @@
 \department{Department of Computing Science}
 \coursename{Parallel Programming 7.5 p}
 \coursecode{5DV152}
-\title{Exercises, Chapter/Topic 1}
+\title{Exercises, Chapter/Topic 2}
 \author{Lorenz Gerber ({\tt{dv15lgr@cs.umu.se}} {\tt{lozger03@student.umu.se}})}
 \date{2017-01-26}
 %\revisiondate{2016-01-18}
@@ -69,9 +69,9 @@
 \section{Introduction}
 This report is part of the mandatory coursework. It describes the solutions for several chosen exercises from the course book \cite{pacheco2011}.
 \section{2.4 - Counting pages}
-The 12 lower bits are used for within page adressing and the 20 upper bits of the 32 bit address are used for pages. With 20 bits, $2^{20}$ can be addressed. 
+The 12 lower bits are used for within page adressing and the 20 upper bits of the 32 bit address are used for pages. With 20 bits, $2^{20}$ pages (1'046'576) can be addressed. 12 bits corresponds to a page size of 4Kb. Hence the total virtual memory is 4Gb. 
 \section{2.8 - Hardware multithreading and caches}
-Caching operates on whole cache lines. Hence if the chance that another process/thread changes something in a specific cache line increases with cache size and number of processes/threads. The specific situation that can happen is called `false sharing': When one process changes data in a cache line, there is no possibilty to check or know for another process which data exactly was changed. It can very well be the case that to the current process unrelated data was changed and a cache reload would not be needed. However, cache has to be reloaded. 
+Caching operates on whole cache lines. Hence, the chance that another process/thread changes something in a specific cache line increases with cache size and number of processes/threads. The specific situation that can happen is called `false sharing': When one process changes data in a cache line, there is no possibilty to check or know for another process which data exactly was changed. It can very well be the case that to the current process unrelated data was changed and a cache reload would not be needed. However, cache has to be reloaded. 
 \section{2.10 - Communication overhead}
 The calculations can be split in two parts: the instructions and the communication. For both a) and b) the instructions will take the same time:\\
 \verb+instructions / cores / instructions_per_second+\\
@@ -166,7 +166,7 @@ The efficiency for the given $T_{serial}$ and $T_{parallel}$ can be expressed as
 E = \frac{n}{p (\frac{n}{p} + log_{2}(p))} = \frac{n}{n + p \times log_{2}(p)}   
 \end{equation*}
 
-To understand the problem, we substitute $p log_{2}(p)$ with $U$. Then the expression for efficiency $E$ reads $\frac{n}{n \times U}$. It becomes obvious that if $U$ increases by $p$, then $n$ has to increase by $\frac{p \times U}{U}$ to maintain the same ratio $E$:
+To understand the problem, we substitute $p \times log_{2}(p)$ with $U$. Then the expression for efficiency $E$ reads $\frac{n}{n \times U}$. It becomes obvious that if $U$ increases by $p$, then $n$ has to increase by $\frac{p \times U}{U}$ to maintain the same ratio $E$:
 \begin{equation*}
 E_{constant} = \frac{n \frac{p \times U}{U}}{n \frac{p \times U}{U} + {p \times U}}
 \end{equation*}
@@ -190,7 +190,7 @@ From this follows:
 A linear speed-up is when a parallel program using $p$ cores runs $p$ times faster than the serial one. So yes, by definition, if a parallel program has a linear speed-up, it is strongly scalable. However, in practice it will hardly be obtainable to have a perfect linear speed-up. In this case, amdahl's law shows that if not 100\% of the code can be made parallel, it can be at most weakly scalable.
 
 \section{2.23 - Alternative algorithm for computing histogram}
-Assuming \verb+data_count+ $c$ and \verb+bin_counts+ $b$ to be $c >> b$, agglomerating over bins should result in fewer but longer/larger tasks. Many small tasks could be an advantage from a practical point of view when we want to scale up, as we can easily distribute the tasks on many cores. Further, when we agglomerate over data, we can sometimes save time if an low index bin is a hit (in case of using linear search from low to high). When we aggregate from bins, we always need to iterate over full length $c$. Hence in most cases, it will be slower. While being slower, each run should be quite well predictable in run-time. This again could be an advantage when we run parallel on just a few cores. 
+Assuming \verb+data_count+ $c$ and \verb+bin_counts+ $b$ to be $c >> b$, agglomerating over bins should result in fewer but longer/larger tasks. Many small tasks could be an advantage from a practical point of view when we want to scale up, as we can easily distribute the tasks on many cores. Further, when we agglomerate over data, we can sometimes save time if a low index bin is a hit (in case of using linear search from low to high). When we aggregate from bins, we always need to iterate over full length $c$. Hence in most cases, it will be slower. While being slower, each run should be quite well predictable in run-time. This again could be an advantage when we run parallel on just a few cores. 
 
 \addcontentsline{toc}{section}{\refname}
 \bibliography{references}

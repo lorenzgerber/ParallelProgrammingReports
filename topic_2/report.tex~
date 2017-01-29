@@ -10,6 +10,8 @@
 \usepackage{pgf-umlcd}
 \usepackage{blindtext}
 \usepackage{enumitem}
+\usepackage{amsfonts}
+\usepackage{mathtools}
 %\usepackage{lmodern}   % Optional fonts. (not necessary)
 %\usepackage{tabularx}
 %\usepackage{microtype} % Provides some typographic improvements over default settings
@@ -22,7 +24,7 @@
 \department{Department of Computing Science}
 \coursename{Parallel Programming 7.5 p}
 \coursecode{5DV152}
-\title{Exercises, Chapter/Topic 1}
+\title{Exercises, Chapter/Topic 2}
 \author{Lorenz Gerber ({\tt{dv15lgr@cs.umu.se}} {\tt{lozger03@student.umu.se}})}
 \date{2017-01-26}
 %\revisiondate{2016-01-18}
@@ -67,7 +69,7 @@
 \section{Introduction}
 This report is part of the mandatory coursework. It describes the solutions for several chosen exercises from the course book \cite{pacheco2011}.
 \section{2.4 - Counting pages}
-$2^{20}$
+The 12 lower bits are used for within page adressing and the 20 upper bits of the 32 bit address are used for pages. With 20 bits, $2^{20}$ can be addressed. 
 \section{2.8 - Hardware multithreading and caches}
 Caching operates on whole cache lines. Hence if the chance that another process/thread changes something in a specific cache line increases with cache size and number of processes/threads. The specific situation that can happen is called `false sharing': When one process changes data in a cache line, there is no possibilty to check or know for another process which data exactly was changed. It can very well be the case that to the current process unrelated data was changed and a cache reload would not be needed. However, cache has to be reloaded. 
 \section{2.10 - Communication overhead}
@@ -84,7 +86,7 @@ while messages to send is described as $10^{9}(p-1)$.
 
     
 \section{2.16 - Speedup efficiency}
-To calculate the hypothetical speed up between a serial and parallel program with the run time formulas $T_{serial}=n^{2}$ and $T_{parallel} = \frac{n^{2}}{p}+log_{2}(p)$ where $T=[ms]$, a short program was written that calculates the speedup $S=\frac{T_{serial}}{P_{parallel}}$:
+To calculate the hypothetical speed up between a serial and parallel program with the run time formulas $T_{serial}=n^{2}$ and $T_{parallel} = \frac{n^{2}}{p}+log_{2}(p)$ where $T=[ms]$, a short program was written that calculates the speedup $S=\frac{T_{serial}}{P_{parallel}}$. The obtained data was then plotted (\textit{figure \ref{fig:speedup}}) using the R statistical environment \cite{rlanguage}.
 
 \begin{verbatim}
 #include <stdio.h>
@@ -99,7 +101,14 @@ To calculate the hypothetical speed up between a serial and parallel program wit
 int main (void) {
   
   FILE *f = NULL;
-  if((f = fopen("data.txt", "w"))<0){
+  if((f = fopen("speedup.txt", "w"))<0){
+    perror("fopen");
+    exit(EXIT_FAILURE);
+  }
+
+  FILE *g = NULL;
+
+  if((g = fopen("efficiency.txt", "w"))<0){
     perror("fopen");
     exit(EXIT_FAILURE);
   }
@@ -108,45 +117,39 @@ int main (void) {
   double p = START_P;
 
   double speedUp = 0;
+  double efficiency = 0;
 
   for(int i = 0 ; i < N_LENGTH; i++){
     for(int j = 0; j < P_LENGTH; j++){
 
       speedUp = n*n / ((n * n) /  p  + (log(p)/log(2)));
+      efficiency = n*n / (p * (n * n) / p + (log(p)/log(2))); 
       fprintf(f, "%lf\t", speedUp);
-      printf("SpeedUp for n = %lf p = %lf is %lf\n", n, p, speedUp);
+      fprintf(g, "%lf\t", efficiency);
+      printf("n = %lf, p = %lf, speedup = %lf, efficiency = %lf\n", n, p, speedUp, efficiency);
       p*=2;
     }
 
     fprintf(f, "\n");
+    fprintf(g, "\n");
     n*=2;
     p = START_P;
   }
 
   fclose(f);
+  fclose(g);
   return 0;
 }
 \end{verbatim}
 
 \begin{enumerate}[label={\alph*)}]
-\item In table \ref{tab:speedup}, the rawdata is presented, while figure \ref{fig:speedup} shows graphs for constant \verb+n+ (upper graph) and constant \verb+p+ (lower graph) respectively. From the upper graph, it can be seen that for constant \verb+p+, the growth of speedup for larger and larger problem instances \verb+n+ decreases and eventually closes in to a horizontal asymptote. The lower graph shows, that for large problem sizes \verb+n+, increasing the number of cores \verb+p+ leads to almost linear speedups, while when we increase the number of cores for small problem instances, the speed up levels of very soon.    
+\item Figure \ref{fig:speedup} shows graphs for constant \verb+n+ (upper graph) and constant \verb+p+ (lower graph) respectively. From the upper graph, it can be seen that for constant \verb+p+, the growth of speedup for larger and larger problem instances \verb+n+ decreases and eventually closes in to a horizontal asymptote. The lower graph shows, that for large problem sizes \verb+n+, increasing the number of cores \verb+p+ leads to almost linear speedups, while when we increase the number of cores for small problem instances, the speed up levels of very soon.    
 
-\item Efficency is defined as $E = \frac{T_{serial}}{pT_{parallel}}$. In the current question, $T_{parallel}$ is defined as $\frac{T_{serial}}{p}+T_{overhead}$. Hence efficency translates here to $E=\frac{T_{serial}}{p(\frac{T_{serial}}{p}+T_{overhead})} = \frac{T_{serial}}{T_{serial}+pT_{overhead}}$. 
+\item Efficency is defined as $E = \frac{T_{serial}}{pT_{parallel}}$. In the current question, $T_{parallel}$ is defined as $\frac{T_{serial}}{p}+T_{overhead}$. Hence efficency $E$ translates here to $\frac{T_{serial}}{p(\frac{T_{serial}}{p}+T_{overhead})} = \frac{T_{serial}}{T_{serial}+pT_{overhead}}$. From the last expression, it can be seen, that if $p$ is held constant and $T_{serial}$ grows faster than $T_{overhead}$, the ratio will increase, hence the efficency increases.
+The opposite follows, that if $T_{overhead}$ grows monotoically faster than $T_{serial}$, it will sooner or later dominate the denominator, the ratio will decrease, hence the efficency decrease.
+  
 \end{enumerate}
-\begin{table}[ht!]
-\centering
-\caption{\textit{shows the speed ups in relation to p (vertical) and n (horizontal)}}
-\label{tab:speedup}
-\begin{tabular}{l|cccccccc}
-p \textbackslash n & \multicolumn{1}{l}{1} & \multicolumn{1}{l}{2} & \multicolumn{1}{l}{3} & \multicolumn{1}{l}{4} & \multicolumn{1}{l}{5} & \multicolumn{1}{l}{6} & \multicolumn{1}{l}{7} & \multicolumn{1}{l}{8} \\ \hline
-1                  & 1                     & 1.96                  & 3.70                  & 6.45                  & 9.76                  & 12.31                 & 13.22                 & 12.85                 \\
-2                  & 1                     & 1.99                  & 3.92                  & 7.55                  & 13.79                 & 22.86                 & 32.65                 & 39.51                 \\
-3                  & 1                     & 2                     & 3.98                  & 7.88                  & 15.38                 & 29.09                 & 51.61                 & 82.05                 \\
-4                  & 1                     & 2                     & 4                     & 7.97                  & 15.84                 & 31.22                 & 60.38                 & 112.28                \\
-5                  & 1                     & 2                     & 4                     & 7.99                  & 15.96                 & 31.80                 & 63.05                 & 123.67                \\
-6                  & 1                     & 2                     & 4                     & 8                     & 15.99                 & 31.95                 & 63.76                 & 126.89               
-\end{tabular}
-\end{table}
+
 
 \begin{figure}
   
@@ -156,11 +159,39 @@ p \textbackslash n & \multicolumn{1}{l}{1} & \multicolumn{1}{l}{2} & \multicolum
     \label{fig:speedup}
 \end{figure}
 
-
-
 \section{2.19 - Scalability}
+The efficiency for the given $T_{serial}$ and $T_{parallel}$ can be expressed as:
+
+\begin{equation*}
+E = \frac{n}{p (\frac{n}{p} + log_{2}(p))} = \frac{n}{n + p \times log_{2}(p)}   
+\end{equation*}
+
+To understand the problem, we substitute $p log_{2}(p)$ with $U$. Then the expression for efficiency $E$ reads $\frac{n}{n \times U}$. It becomes obvious that if $U$ increases by $p$, then $n$ has to increase by $\frac{p \times U}{U}$ to maintain the same ratio $E$:
+\begin{equation*}
+E_{constant} = \frac{n \frac{p \times U}{U}}{n \frac{p \times U}{U} + {p \times U}}
+\end{equation*}
+
+From this follows:
+
+\begin{equation*}
+\frac{n\frac{k \times log(k\times p)}{log(p)}}{n \frac{k \times log(k \times p)}{log(p)} + k \times p \times log_{2}(k \times p)}
+\end{equation*}
+
+
+\begin{enumerate}[label={\alph*)}]
+\item Hence, the sought factor for $n$ is $\frac{k \times log(k\times p)}{log(p)}$
+
+\item If $p = 8$ then $16 = p \times 2$, hence $k = 2, p = 8$. Filling these values into the expression from \textit{a)}, the numeric result is $\frac{8}{3}$.
+  
+\end{enumerate}
+
+
 \section{2.20 - Linear speedup and strong scalability}
+A linear speed-up is when a parallel program using $p$ cores runs $p$ times faster than the serial one. So yes, by definition, if a parallel program has a linear speed-up, it is strongly scalable. However, in practice it will hardly be obtainable to have a perfect linear speed-up. In this case, amdahl's law shows that if not 100\% of the code can be made parallel, it can be at most weakly scalable.
+
 \section{2.23 - Alternative algorithm for computing histogram}
+Assuming \verb+data_count+ $c$ and \verb+bin_counts+ $b$ to be $c >> b$, agglomerating over bins should result in fewer but longer/larger tasks. Many small tasks could be an advantage from a practical point of view when we want to scale up, as we can easily distribute the tasks on many cores. Further, when we agglomerate over data, we can sometimes save time if an low index bin is a hit (in case of using linear search from low to high). When we aggregate from bins, we always need to iterate over full length $c$. Hence in most cases, it will be slower. While being slower, each run should be quite well predictable in run-time. This again could be an advantage when we run parallel on just a few cores. 
+
 \addcontentsline{toc}{section}{\refname}
 \bibliography{references}
 
