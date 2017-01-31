@@ -80,12 +80,12 @@ Hence $10^{12} \div 1000 \div 10^{6} = 1000 sec$. For communications, the time i
 while messages to send is described as $10^{9}(p-1)$. 
 \begin{enumerate}[label={\alph*)}]
 \item if sending one message takes $10^{-9}$ seconds, the communication with 1000 cores will take: $10^{9}(1000-1) \times 10^{-9} = 999 sec$, together with the actual calculation, $1'999 sec = 33.32min$.
-\item if sending one message takes $10^{-3}$ seconds , the communication with 1000 cores will take: $10^{9}(1000-1) \times 10^{-3} = 9.99\times10^{14} s$, or several trillion years...
+\item if sending one message takes $10^{-3}$ seconds , the communication with 1000 cores will take: $10^{9}(1000-1) \times 10^{-3} = 9.99\times10^{8} s$, or 31.7 years...
 \end{enumerate}
 
 
     
-\section{2.16 - Speedup efficiency}
+ah\section{2.16 - Speedup efficiency}
 To calculate the hypothetical speed up between a serial and parallel program with the run time formulas $T_{serial}=n^{2}$ and $T_{parallel} = \frac{n^{2}}{p}+log_{2}(p)$ where $T=[ms]$, a short program was written that calculates the speedup $S=\frac{T_{serial}}{P_{parallel}}$. The obtained data was then plotted (\textit{figure \ref{fig:speedup}}) using the R statistical environment \cite{rlanguage}.
 
 \begin{verbatim}
