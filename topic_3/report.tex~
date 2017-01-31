@@ -10,6 +10,8 @@
 \usepackage{pgf-umlcd}
 \usepackage{blindtext}
 \usepackage{enumitem}
+\usepackage{amsfonts}
+\usepackage{mathtools}
 %\usepackage{lmodern}   % Optional fonts. (not necessary)
 %\usepackage{tabularx}
 %\usepackage{microtype} % Provides some typographic improvements over default settings
@@ -49,6 +51,8 @@
 % DEFINES
 % =======
 %\newcommand{\mycommand}{<latex code>}
+\DeclarePairedDelimiter{\ceil}{\lceil}{\rceil}
+\DeclarePairedDelimiter{\floor}{\lfloor}{\rfloor}
 
 % DOCUMENT
 % ========
@@ -111,29 +115,18 @@ double calc_local_b(int my_rank, double a, double b, int n, int comm_sz){
 \end{verbatim}
 
 \section{3.6 - Array distributions}
-Given is a vector \verb+x+ of length \verb+n+ with the indices \verb+i+. The number of processes used is \verb+comm_sz+ and the index of the current process is \verb+my_rank+. 
 
-\subsection{Block distribution}
-For a block distribution, we devise the functions \verb+local_start_i+ and \verb+local_end_i+. These can be used in \verb+for loop+. 
+\subsection*{Block distribution}
+Block distribution can be obtained by $b = \floor*{i \div p}$ where $b$ is the block number, $i$ the index of $n$ and $p$ is the number of processes. This solution seems reasonable altough it is not the optimum solution in every case.
 
-\begin{verbatim}
-local_start_i:
-my_rank * n / comm_sz + (my_rank < n mod comm_sz ? my_rank : n mod comm_sz)
-\end{verbatim}
-\begin{verbatim}
-local_end_i:
-(my_rank + 1) * n / comm_sz + (my_rank + 1 < n mod comm_sz ? my_rank + 1 : n mod comm_sz)
-\end{verbatim}
+\subsection*{Cyclic distribution}
+Cyclic distribution is described by $b = i mod p$ with $b$ as block number $i$ as index of $n$ and $p$ as number of processes. 
 
-\subsection{Cyclic distribution}
-For cyclic distribution, also \verb+local_start_i+ and \verb+local_end_i+ will be determined. They can be used in a \verb+for loop+ with step size \verb+comm_sz+.
-
-
-\subsection{Block cyclic distribution}
-For block cyclic distribution, \verb+local_start_i+ and \verb+local_end_i+ are used with an interleaved double \verb+for loop+.  The outer loop will use the above mentioned functions with a step-size of \verb+comm_sz * block_size+. The inner loop will start at \verb+local_start_i+ until \verb+local_start_i + block_size+ or \verb+n+, whichever is smaller.
-
+\subsection*{Block cyclic distribution}
+Block cyclic distribution can be expressed as $b = \floor*{i \div l} mod p$ where $b$ is block index, $i$ index of $n$, $l$ block length and $p$ number of processes.
 
 \section{3.8 - Tree-structured algorithms for scatter and gather}
+
 
 \section{3.9 - Vector scaling and dot product}
 takes a while to solve,
