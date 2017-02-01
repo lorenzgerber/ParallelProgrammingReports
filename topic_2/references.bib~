@@ -58,7 +58,7 @@
     author       = {{R Core Team}},
     organization = {R Foundation for Statistical Computing},
     address      = {Vienna, Austria},
-    year         = {2015},
+    year         = {2016},
     url          = {https://www.R-project.org/},
 }
 
@@ -93,3 +93,9 @@
   howpublished = {\url{http://docs.oracle.com/javase/tutorial/uiswing/components/table.html}},
   note         = {accessed: 2017-01-08}
 }
+
+@misc{github,
+  key          = {Github Lorenz Gerber},
+  title        = {Github page of Lorenz Gerber, Project Parallel Programming Reports},
+  howpublished = {\url{http://github.com/lorenzgerber/ParallelProgrammingReports}},
+  note         = {accesses: 2017-02-01}
