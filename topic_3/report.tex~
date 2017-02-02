@@ -24,7 +24,7 @@
 \department{Department of Computing Science}
 \coursename{Parallel Programming 7.5 p}
 \coursecode{5DV152}
-\title{Exercises, Chapter/Topic 1}
+\title{Exercises, Chapter/Topic 3}
 \author{Lorenz Gerber ({\tt{dv15lgr@cs.umu.se}} {\tt{lozger03@student.umu.se}})}
 \date{2017-02-16}
 %\revisiondate{2016-01-18}
@@ -117,10 +117,13 @@ double calc_local_b(int my_rank, double a, double b, int n, int comm_sz){
 \section{3.6 - Array distributions}
 
 \subsection*{Block distribution}
-Block distribution can be obtained by $b = \floor*{i \div p}$ where $b$ is the block number, $i$ the index of $n$ and $p$ is the number of processes. This solution seems reasonable altough it is not the optimum solution in every case.
+Block distribution can be obtained by $b = \floor*{i \div p}$ where $b$ is the block number, $i$ the index of $n$ and $p$ is the number of processes. This solution is however not fair. An improved, fair expression can be devised using a ternary operator:
+\begin{equation*}
+i< n\mod p \times \ceil*{n \div p} ? \floor*{i \div \ceil*{n \div p}} : n\mod p + \floor*{(i -n\mod p \times \ceil*{n \div p}) \div \floor*{n\mod p}}
+\end{equation*} 
 
 \subsection*{Cyclic distribution}
-Cyclic distribution is described by $b = i mod p$ with $b$ as block number $i$ as index of $n$ and $p$ as number of processes. 
+Cyclic distribution is described by $b = i\mod p$ with $b$ as block number $i$ as index of $n$ and $p$ as number of processes. 
 
 \subsection*{Block cyclic distribution}
 Block cyclic distribution can be expressed as $b = \floor*{i \div l} mod p$ where $b$ is block index, $i$ index of $n$, $l$ block length and $p$ number of processes.
