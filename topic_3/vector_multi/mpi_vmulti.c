@@ -2,43 +2,44 @@
 #include <mpi.h>
 #include <string.h>
 #include <stdlib.h>
+#include <time.h>
+
 
 int main(int argc, char *argv[]) {
   int my_rank, comm_sz;
-  int n;
-  int local_n;
-  int local_dotp_sum = 0;
+  int n, local_n, local_dotp_sum = 0, scalar, result_dot;
   int* local_vec1;
   int* local_vec2;
   int* vector1;
   int* vector2;
-  int scalar;
-  int result_dot;
 
+  /* Initializing */
   MPI_Init(NULL, NULL);
   MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
   MPI_Comm_size(MPI_COMM_WORLD, &comm_sz);
+  srand(time(NULL));
 
+  /* Obtaining Data */
+  if(my_rank==0 && argc > 1){
 
-  //n = (int *) malloc(sizeof(int));
-  //scalar = (int *) malloc(sizeof(scalar));
+    if(strcmp(argv[1], "r") == 0){
+      printf("using random data, vector length = %d\n", 100*comm_sz);
+      n = 100*comm_sz;
+      vector1 = (int *) malloc(100*comm_sz * sizeof(int));
+      vector2 = (int *) malloc(100*comm_sz * sizeof(int));
 
-  if(my_rank==0){
-    if(argc > 1){
-      if(strcmp(argv[1], "r") == 0){
-	printf("random\n");
-	// Here comes the random generator
+      for(int i = 0; i < n;i++){
+	vector1[i] = rand() % 1000;
+	vector2[i] = rand() % 1000;
       }
+      scalar = rand() % 1000;
     }
-
-    printf("enter vector length\n");
     
+  } else if (my_rank==0){
+     
+    printf("enter vector length\n");
     scanf("%d", &n);
-    printf("vector of length %d is assigned\n", n);
-
-
     printf("enter integer vector 1\n");
-
 
     vector1 = (int *) malloc(n * sizeof(int));
     vector2 = (int *) malloc(n * sizeof(int));
@@ -63,18 +64,11 @@ int main(int argc, char *argv[]) {
   local_n = n/comm_sz;
   local_vec1 = (int*) malloc(local_n * sizeof(int));
   local_vec2 = (int*) malloc(local_n * sizeof(int));
-
   
   MPI_Bcast(&scalar, 1, MPI_INT, 0, MPI_COMM_WORLD);
   MPI_Scatter(vector1, local_n, MPI_INT, local_vec1, local_n, MPI_INT, 0, MPI_COMM_WORLD);
   MPI_Scatter(vector2, local_n, MPI_INT, local_vec2, local_n, MPI_INT, 0, MPI_COMM_WORLD);
-
-  printf("my_rank = %d, local_n = %d\n", my_rank, local_n);
-
-  for(int i = 0; i < local_n; i++){
-    printf("\n%d = %d, %d\n", i, local_vec1[i], local_vec2[i]);
-  }
-
+ 
   /* Calculations */
   /* Calculate Dot Product */
   for(int i = 0;  i< local_n; i++){
@@ -86,19 +80,16 @@ int main(int argc, char *argv[]) {
     local_vec1[i]*=scalar;
   }
 
-
   /* Summing for dot product */
   for(int i = 0; i < local_n; i++){
     local_dotp_sum += local_vec2[i];    
   } 
-
  
   /* Collect Data */
   MPI_Gather(local_vec1, local_n, MPI_INT, vector1, local_n, MPI_INT, 0, MPI_COMM_WORLD);
   MPI_Reduce(&local_dotp_sum, &result_dot, 1, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);
 
   /* Results */
-
   if(my_rank == 0){
     printf("dot product = %d\n", result_dot);
 
@@ -106,11 +97,8 @@ int main(int argc, char *argv[]) {
     for(int i = 0; i < n;i++){
       printf("%d ", vector1[i]);
     }
-    
+    printf("\n");
   }
-
-
-  
 
   /* Clean up */
   if(my_rank==0){
@@ -120,8 +108,6 @@ int main(int argc, char *argv[]) {
   
   free(local_vec1);
   free(local_vec2);
-
-  
 
   MPI_Finalize();
 
