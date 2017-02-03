@@ -264,8 +264,17 @@ int main(int argc, char *argv[]) {
 \end{verbatim}
 
 \section{3.11 - Prefix sums}
-takes a qhile to solve
-requires programming
+\subsection*{Serial Algorithm}
+Assume vector $x$ of length $n$ and prefix sums vector $y$ to be calculated.
+\begin{verbatim}
+y_0 = x_0
+for (i = 1, i < n , i++)
+    y_i = y_i-1 + n_i
+\end{verbatim}
+
+\subsection*{Parallel Algorithm}
+
+
 
 \section{3.13 - Generalization of vector scaling and dot product}
 
