@@ -7,16 +7,21 @@ int main(int argc, char *argv[]) {
   int my_rank, comm_sz;
   int n;
   int local_n;
-  int* local_vec;
+  int local_dotp_sum = 0;
+  int* local_vec1;
+  int* local_vec2;
   int* vector1;
   int* vector2;
-  int* scalar;
+  int scalar;
+  int result_dot;
 
   MPI_Init(NULL, NULL);
   MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
   MPI_Comm_size(MPI_COMM_WORLD, &comm_sz);
 
- 
+
+  //n = (int *) malloc(sizeof(int));
+  //scalar = (int *) malloc(sizeof(scalar));
 
   if(my_rank==0){
     if(argc > 1){
@@ -27,6 +32,7 @@ int main(int argc, char *argv[]) {
     }
 
     printf("enter vector length\n");
+    
     scanf("%d", &n);
     printf("vector of length %d is assigned\n", n);
 
@@ -38,34 +44,82 @@ int main(int argc, char *argv[]) {
     vector2 = (int *) malloc(n * sizeof(int));
 
     for(int i = 0; i < n; i++){
-      scanf("%d", &vector1[n]);
+      scanf("%d", &vector1[i]);
     }
 
     printf("enter integer vector 2\n");
 
     for(int i = 0; i < n; i++){
-      scanf("%d", &vector2[n]);
+      scanf("%d", &vector2[i]);
     }
 
     printf("enter integer scalar\n");
-    scanf("%d", scalar);
+    scanf("%d", &scalar);
   }
 
-  //printf("comm_sz = %d", comm_sz);
+  /* Distribute Data */
+  MPI_Bcast(&n, 1, MPI_INT, 0, MPI_COMM_WORLD);
+  
+  local_n = n/comm_sz;
+  local_vec1 = (int*) malloc(local_n * sizeof(int));
+  local_vec2 = (int*) malloc(local_n * sizeof(int));
+
+  
+  MPI_Bcast(&scalar, 1, MPI_INT, 0, MPI_COMM_WORLD);
+  MPI_Scatter(vector1, local_n, MPI_INT, local_vec1, local_n, MPI_INT, 0, MPI_COMM_WORLD);
+  MPI_Scatter(vector2, local_n, MPI_INT, local_vec2, local_n, MPI_INT, 0, MPI_COMM_WORLD);
+
+  printf("my_rank = %d, local_n = %d\n", my_rank, local_n);
+
+  for(int i = 0; i < local_n; i++){
+    printf("\n%d = %d, %d\n", i, local_vec1[i], local_vec2[i]);
+  }
+
+  /* Calculations */
+  /* Calculate Dot Product */
+  for(int i = 0;  i< local_n; i++){
+    local_vec2[i]*=local_vec1[i];
+  }
+
+  /* Calculate vector-scalar product */
+  for(int i = 0; i< local_n; i++){
+    local_vec1[i]*=scalar;
+  }
+
+
+  /* Summing for dot product */
+  for(int i = 0; i < local_n; i++){
+    local_dotp_sum += local_vec2[i];    
+  } 
+
+ 
+  /* Collect Data */
+  MPI_Gather(local_vec1, local_n, MPI_INT, vector1, local_n, MPI_INT, 0, MPI_COMM_WORLD);
+  MPI_Reduce(&local_dotp_sum, &result_dot, 1, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);
+
+  /* Results */
+
+  if(my_rank == 0){
+    printf("dot product = %d\n", result_dot);
+
+    printf("vector-scalar product = ");
+    for(int i = 0; i < n;i++){
+      printf("%d ", vector1[i]);
+    }
+    
+  }
+
 
   
 
-  //local_n = n/comm_sz;
-  //local_vec = (int*) malloc(local_n * sizeof(int));
-  
-  MPI_Bcast(scalar, 1, MPI_INT, 0, MPI_COMM_WORLD);
-  //MPI_Scatter(vector1, local_n, MPI_INT, local_vec, local_n, MPI_INT, 0, MPI_COMM_WORLD); 
-  
-
+  /* Clean up */
   if(my_rank==0){
     free(vector1);
     free(vector2);
   }
+  
+  free(local_vec1);
+  free(local_vec2);
 
   
 
