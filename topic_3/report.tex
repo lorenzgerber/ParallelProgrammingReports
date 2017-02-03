@@ -129,9 +129,25 @@ Cyclic distribution is described by $b = i\mod p$ with $b$ as block number $i$ a
 Block cyclic distribution can be expressed as $b = \floor*{i \div l} mod p$ where $b$ is block index, $i$ index of $n$, $l$ block length and $p$ number of processes.
 
 \section{3.8 - Tree-structured algorithms for scatter and gather}
+\begin{figure}
 
+  \centering
+  \includegraphics[width=1\textwidth]{scatter.png}
+  \caption{\textit{This graph shows a tree based implementation of scatter for comm\_sz = 8 and n = 16.}}
+  \label{fig:scatter}
+\end{figure}
+\begin{figure}
+
+  \centering
+  \includegraphics[width=1\textwidth]{gather.png}
+  \caption{\textit{This graph shows a tree based implementation of gather for comm\_sz = 8 and n = 16.}}
+  \label{fig:gather}
+\end{figure}
 
 \section{3.9 - Vector scaling and dot product}
+
+
+
 takes a while to solve,
 requires programming
 
@@ -140,6 +156,9 @@ takes a qhile to solve
 requires programming
 
 \section{3.13 - Generalization of vector scaling and dot product}
+
+
+
 
 \section{3.16 - Diagram for a butterfly implementation of allgather}
 

@@ -5,11 +5,12 @@
 
 int main(int argc, char *argv[]) {
   int my_rank, comm_sz;
-  int n, scalar;
+  int n;
   int local_n;
   int* local_vec;
   int* vector1;
   int* vector2;
+  int* scalar;
 
   MPI_Init(NULL, NULL);
   MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
@@ -47,24 +48,26 @@ int main(int argc, char *argv[]) {
     }
 
     printf("enter integer scalar\n");
-    scanf("%d", &scalar);
+    scanf("%d", scalar);
   }
 
-  printf("comm_sz = %d", comm_sz);
+  //printf("comm_sz = %d", comm_sz);
 
-  /*
-
-  local_n = n/comm_sz;
-  local_vec = (int*) malloc(local_n * sizeof(int));
   
-  //MPI_Bcast(&n, 1, MPI_INT, 0, MPI_COMM_WORLD);
+
+  //local_n = n/comm_sz;
+  //local_vec = (int*) malloc(local_n * sizeof(int));
+  
+  MPI_Bcast(scalar, 1, MPI_INT, 0, MPI_COMM_WORLD);
   //MPI_Scatter(vector1, local_n, MPI_INT, local_vec, local_n, MPI_INT, 0, MPI_COMM_WORLD); 
   
 
-  free(vector1);
-  free(vector2);
+  if(my_rank==0){
+    free(vector1);
+    free(vector2);
+  }
 
-  */
+  
 
   MPI_Finalize();
 
