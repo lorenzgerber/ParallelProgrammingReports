@@ -273,6 +273,28 @@ for (i = 1, i < n , i++)
 \end{verbatim}
 
 \subsection*{Parallel Algorithm}
+After Blelloch \cite{belloch1990}, parallel prefix-sum, or `Sum Scan Algorithm' can be calculated in two steps, the `Up-sweep' (Reduce) and `Down-sweep'. Pseudo code from M. Valdez \cite{valdez2012} where $x$ is the input data, $n$ the size of the input and $d$ the number of processeors. If $n \neq 2^{k}$, then $n$ has to be extended with \textit{zero's}. The `Up-Sweep':
+\begin{verbatim}
+for d = 0 to log2(n) – 1 do 
+      for all k = 0 to n – 1 by 2^(d+1) in parallel do 
+           x[k +  2^(d+1) – 1] = x[k +  2^d  – 1] + x[k +  2^(d+1) – 1]
+\end{verbatim}
+
+The `Down-Sweep':
+\begin{verbatim}
+x[n – 1] = 0
+ for d = log2(n) – 1 down to 0 do 
+       for all k = 0 to n – 1 by 2^(d+1) in parallel do 
+            t = x[k +  2^d  – 1]
+            x[k +  2^d  – 1] = x[k +  2^(d+1) – 1]
+            x[k +  2^(d+1) – 1] = t +  x[k +  2^(d+1) – 1]
+
+\end{verbatim}
+
+\subsection*{Minimum Communication}
+An algorithm that uses for the prefix-sum of length $n = 2^k$ only $k$ communication steps can be derived from the communication model in a hypercube.
+
+\subsection*{MPI Program using MPI_Scan}
 
 
 
