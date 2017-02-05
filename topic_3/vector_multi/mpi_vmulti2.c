@@ -80,16 +80,6 @@ int main(int argc, char *argv[]) {
     displs[i] = displs[i-1]+sendcounts[i];   
   }
 
-  /* show n distribution on ranks*/
-  
-  if(my_rank==0){
-    for(int i = 0; i < comm_sz;i++){
-      printf("i sendcounts %d counts %d displs %d\n",i, sendcounts[i], displs[i]);
-    }
-    printf("------\n");
-  }
-  
-  
  
   local_n = sendcounts[my_rank];
 
@@ -97,22 +87,8 @@ int main(int argc, char *argv[]) {
   local_vec2 = (int*) malloc(local_n * sizeof(int));
   
   MPI_Bcast(&scalar, 1, MPI_INT, 0, MPI_COMM_WORLD);
-  //MPI_Scatter(vector1, local_n, MPI_INT, local_vec1, local_n, MPI_INT, 0, MPI_COMM_WORLD);
-  //MPI_Scatter(vector2, local_n, MPI_INT, local_vec2, local_n, MPI_INT, 0, MPI_COMM_WORLD);
-
   MPI_Scatterv(vector1, sendcounts, displs, MPI_INT, local_vec1, sendcounts[my_rank], MPI_INT, 0, MPI_COMM_WORLD);
   MPI_Scatterv(vector2, sendcounts, displs, MPI_INT, local_vec2, sendcounts[my_rank], MPI_INT, 0, MPI_COMM_WORLD);
-
-  /* test prints */
-  for(int i = 0; i < comm_sz; i++){
-    if(i == my_rank){
-      printf("rank %d ", i);
-      for(int j = 0; j < local_n; j++){
-	printf("%d %d, ", local_vec1[j], local_vec2[j]);
-      }
-      printf("\n");
-    }
-  }
 
   
   /* Calculations */
@@ -132,7 +108,6 @@ int main(int argc, char *argv[]) {
   } 
  
   /* Collect Data */
-  //MPI_Gather(local_vec1, local_n, MPI_INT, vector1, local_n, MPI_INT, 0, MPI_COMM_WORLD);
   MPI_Gatherv(local_vec1, sendcounts[my_rank], MPI_INT, vector1, sendcounts, displs, MPI_INT, 0, MPI_COMM_WORLD); 
   MPI_Reduce(&local_dotp_sum, &result_dot, 1, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);
 
