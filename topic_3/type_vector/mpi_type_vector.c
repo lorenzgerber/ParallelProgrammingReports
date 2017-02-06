@@ -17,6 +17,7 @@ int main(void) {
   MPI_Comm_rank(MPI_COMM_WORLD, &myrank);
   MPI_Comm_size(MPI_COMM_WORLD, &nprocs);
   MPI_Status info;
+  
 
 
     
@@ -25,28 +26,27 @@ int main(void) {
   MPI_Type_vector(N,1,N,MPI_INT,&column);
   MPI_Type_commit(&column);
 
+  // Define type "vec"
+  MPI_Datatype block_cyclic;
+  MPI_Type_vector(block_length, no_cycles, cycle_block_length, MPI_DOUBE, &cycle_vec);
 
+  if(myrank==0){
+    j=1;
+    MPI_Send(&matrix[0][j],1,column,1,99,MPI_COMM_WORLD);
+  }
 
+  if(myrank==1){
 
-    if(myrank==0){
-      j=1;
-      MPI_Send(&matrix[0][j],1,column,1,99,MPI_COMM_WORLD);
+    MPI_Recv(col,N,MPI_INT,0,99,MPI_COMM_WORLD,&info);
+
+    printf("\nColumn: ");
+
+    for(j=0;j<N;j++){
+      printf("\n %d",col[j]);
     }
-
-    if(myrank==1){
-      // **** FIRST MODE: Don't use "column" type *****
-      MPI_Recv(col,N,MPI_INT,0,99,MPI_COMM_WORLD,&info);
-
-      // **** SECOND MODE: Use "column" type *****
-      // MPI_Recv(col,1,column_INT,0,99,MPI_COMM_WORLD,&info);
-
-      printf("\nColumn: ");
-      for(j=0;j<N;j++)
-	printf("\n %d",col[j]);
-    }
-
-    MPI_Type_free(&column);
-    MPI_Finalize();
-
-    return 0;
+  }
+  
+  MPI_Type_free(&column);
+  MPI_Finalize();
+  return 0;
 }
