@@ -10,6 +10,8 @@ int main(void) {
 
   int matrix[4][4]={{1,2,3,4},{5,6,7,8},{9,10,11,12},{13,14,15,16}};
   int col[4];
+  double vec[18] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17};
+  
 
   MPI_Init(NULL, NULL);
   MPI_Comm_rank(MPI_COMM_WORLD, &myrank);
@@ -17,10 +19,14 @@ int main(void) {
   MPI_Status info;
 
 
-    // Define type "column"
-    MPI_Datatype column;
-    MPI_Type_vector(N,1,N,MPI_INT,&column);
-    MPI_Type_commit(&column);
+    
+  // Define type "column"  
+  MPI_Datatype column;
+  MPI_Type_vector(N,1,N,MPI_INT,&column);
+  MPI_Type_commit(&column);
+
+
+
 
     if(myrank==0){
       j=1;

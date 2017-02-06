@@ -35,7 +35,7 @@ int main(void) {
       // MPI_Recv(col,1,column_INT,0,99,MPI_COMM_WORLD,&info);
 
       printf("\nColumn: ");
-      for(j=1;j<N;j++)
+      for(j=0;j<N;j++)
 	printf("\n %d",col[j]);
     }
 
