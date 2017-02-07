@@ -25,6 +25,7 @@
 #include <stdlib.h>
 #include <mpi.h>
 
+
 void Check_for_error(int local_ok, char fname[], char message[], 
       MPI_Comm comm);
 void Get_dims(int* m_p, int* local_m_p, int* n_p, int* local_n_p,
@@ -47,6 +48,8 @@ void Mat_vect_mult(double local_A[], double local_x[],
       MPI_Comm comm);
 
 /*-------------------------------------------------------------------*/
+
+
 int main(void) {
    double* local_A;
    double* local_x;
@@ -61,10 +64,26 @@ int main(void) {
    MPI_Comm_size(comm, &comm_sz);
    MPI_Comm_rank(comm, &my_rank);
 
+   int m_series[5] = {32, 32, 64, 128, 128};
+   int n_series[5] = {32, 64, 64, 64, 128 };
+     
+   
+   
+   for (int i = 0; i < 5;i++){
+     m = m_series[i];
+     n = n_series[i];
+
+     for(int j = 0; j < 100; j++){
+       
+     
+      
+       
+
+     
    Get_dims(&m, &local_m, &n, &local_n, my_rank, comm_sz, comm);
    Allocate_arrays(&local_A, &local_x, &local_y, local_m, n, local_n, comm);
 // Read_matrix("A", local_A, m, local_m, n, my_rank, comm);
-   srandom(my_rank);
+   srand(my_rank);
    Generate_matrix(local_A, local_m, n);
 #  ifdef DEBUG
    Print_matrix("A", local_A, m, local_m, n, my_rank, comm);
@@ -87,11 +106,16 @@ int main(void) {
 #  endif
 
    if (my_rank == 0)
-      printf("Elapsed time = %e\n", elapsed);
+     printf("%d %e\n", m*n, elapsed);
 
    free(local_A);
    free(local_x);
    free(local_y);
+   }
+   }
+
+
+
    MPI_Finalize();
    return 0;
 }  /* main */
@@ -131,12 +155,21 @@ void Get_dims(
       MPI_Comm  comm       /* in  */) {
    int local_ok = 1;
 
+   /*
    if (my_rank == 0) {
       printf("Enter the number of rows\n");
       scanf("%d", m_p);
       printf("Enter the number of columns\n");
       scanf("%d", n_p);
    }
+   */
+
+   
+   //*m_p = 32;
+   //*n_p = 32;
+   			
+   
+   
    MPI_Bcast(m_p, 1, MPI_INT, 0, comm);
    MPI_Bcast(n_p, 1, MPI_INT, 0, comm);
    if (*m_p <= 0 || *n_p <= 0 || *m_p % comm_sz != 0 
@@ -243,7 +276,7 @@ void Generate_matrix(
 
    for (i = 0; i < local_m; i++)
       for (j = 0; j < n; j++) 
-         local_A[i*n + j] = ((double) random())/((double) RAND_MAX);
+         local_A[i*n + j] = ((double) rand())/((double) RAND_MAX);
 }  /* Generate_matrix */
 
 /*-------------------------------------------------------------------*/
@@ -253,7 +286,7 @@ void Generate_vector(
    int i;
 
    for (i = 0; i < local_n; i++)
-      local_x[i] = ((double) random())/((double) RAND_MAX);
+      local_x[i] = ((double) rand())/((double) RAND_MAX);
 }  /* Generate_vector */
 
 /*-------------------------------------------------------------------*/
