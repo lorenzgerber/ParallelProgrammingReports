@@ -38,9 +38,26 @@ int main(void) {
 int Read_vector(int block_length, double* vector, double** slice, int vector_length, int my_rank, int comm_sz){
 
   /* calc block cyclic distro */
+  int rest_blocks = vector_length % (block_length * comm*sz);
   int no_cycles = vector_length / (block_length * comm_sz);
   int cycle_block_length = block_length * comm_sz;
   int slice_length = no_cycles * block_length;
+  int slice_lengths[comm_sz] = { 0 };
+
+  /* populating slice_lengths array */
+  for (int i = 0; i < comm_sz; i++){
+    int temp_length;
+    if ( rest_blocks > 0){
+      if (rest_blocks % block_length > i){
+	temp_length = slice_length + 1;
+      } else {
+	temp_length = slice_length;
+      } 
+    }
+    slice_lengths[i] = temp_length; 
+  }
+
+ 
     
   /* define data type */
   MPI_Datatype block_cyclic;
