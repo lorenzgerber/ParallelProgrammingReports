@@ -61,38 +61,40 @@ int main(int argc, char* argv[]) {
    int global_n;
    int local_n;
    MPI_Comm comm;
+   double start, finish, loc_elapsed, elapsed;
 
    MPI_Init(&argc, &argv);
    comm = MPI_COMM_WORLD;
    MPI_Comm_size(comm, &p);
    MPI_Comm_rank(comm, &my_rank);
 
+   for (int i = 0; i < 100; i++){
+
    Get_args(argc, argv, &global_n, &local_n, &g_i, my_rank, p, comm);
+
+
    local_A = (int*) malloc(local_n*sizeof(int));
    if (g_i == 'g') {
       Generate_list(local_A, local_n, my_rank);
-      Print_local_lists(local_A, local_n, my_rank, p, comm);
+      //Print_local_lists(local_A, local_n, my_rank, p, comm);
    } else {
       Read_list(local_A, local_n, my_rank, p, comm);
-#     ifdef DEBUG
-      Print_local_lists(local_A, local_n, my_rank, p, comm);
-#     endif
    }
 
-#  ifdef DEBUG
-   printf("Proc %d > Before Sort\n", my_rank);
-   fflush(stdout);
-#  endif
+
+   MPI_Barrier(comm);
+   start = MPI_Wtime();
    Sort(local_A, local_n, my_rank, p, comm);
-
-#  ifdef DEBUG
-   Print_local_lists(local_A, local_n, my_rank, p, comm);
-   fflush(stdout);
-#  endif
-
-   Print_global_list(local_A, local_n, my_rank, p, comm);
+   finish = MPI_Wtime();
+   loc_elapsed = finish - start;
+   MPI_Reduce(&loc_elapsed, &elapsed, 1, MPI_DOUBLE, MPI_MAX, 0, comm);
+   if (my_rank == 0){
+     printf("%d %e\n", global_n, elapsed);
+   }
 
    free(local_A);
+   }
+    
 
    MPI_Finalize();
 
@@ -109,9 +111,9 @@ int main(int argc, char* argv[]) {
 void Generate_list(int local_A[], int local_n, int my_rank) {
    int i;
 
-    srandom(my_rank+1);
+    srand(my_rank+1);
     for (i = 0; i < local_n; i++)
-       local_A[i] = random() % RMAX;
+       local_A[i] = rand() % RMAX;
 
 }  /* Generate_list */
 
@@ -143,12 +145,14 @@ void Usage(char* program) {
 void Get_args(int argc, char* argv[], int* global_n_p, int* local_n_p, 
          char* gi_p, int my_rank, int p, MPI_Comm comm) {
 
+  
+  
    if (my_rank == 0) {
       if (argc != 3) {
          Usage(argv[0]);
          *global_n_p = -1;  /* Bad args, quit */
       } else {
-         *gi_p = argv[1][0];
+	*gi_p = 'g'; //argv[1][0];
          if (*gi_p != 'g' && *gi_p != 'i') {
             Usage(argv[0]);
             *global_n_p = -1;  /* Bad args, quit */
@@ -162,6 +166,7 @@ void Get_args(int argc, char* argv[], int* global_n_p, int* local_n_p,
       }
    }  /* my_rank == 0 */
 
+   
    MPI_Bcast(gi_p, 1, MPI_CHAR, 0, comm);
    MPI_Bcast(global_n_p, 1, MPI_INT, 0, comm);
 
@@ -171,12 +176,6 @@ void Get_args(int argc, char* argv[], int* global_n_p, int* local_n_p,
    }
 
    *local_n_p = *global_n_p/p;
-#  ifdef DEBUG
-   printf("Proc %d > gi = %c, global_n = %d, local_n = %d\n",
-      my_rank, *gi_p, *global_n_p, *local_n_p);
-   fflush(stdout);
-#  endif
-
 }  /* Get_args */
 
 
@@ -286,11 +285,6 @@ void Sort(int local_A[], int local_n, int my_rank,
 
    /* Sort local list using built-in quick sort */
    qsort(local_A, local_n, sizeof(int), Compare);
-
-#  ifdef DEBUG
-   printf("Proc %d > before loop in sort\n", my_rank);
-   fflush(stdout);
-#  endif
 
    for (phase = 0; phase < p; phase++)
       Odd_even_iter(local_A, temp_B, temp_C, local_n, phase, 

@@ -15,6 +15,7 @@
  */
 #include <stdio.h>
 #include <stdlib.h>
+#include "timer.h"
 
 /* Keys in the random list in the range 0 <= key < RMAX */
 const int RMAX = 100;
@@ -29,23 +30,43 @@ void Odd_even_sort(int a[], int n);
 /*-----------------------------------------------------------------*/
 int main(int argc, char* argv[]) {
    int  n;
-   char g_i;
+   char g_i = 'g';
    int* a;
+   int n_series[3] = {100, 1000, 10000};
+   double start, finish;
+   
 
+   /*
    Get_args(argc, argv, &n, &g_i);
+   */
+   
+
+   for (int i = 0; i < 3; i++){
+     n = n_series[i];
+     for (int j = 0; j < 100; j++){
+       
+   
    a = (int*) malloc(n*sizeof(int));
    if (g_i == 'g') {
       Generate_list(a, n);
-      Print_list(a, n, "Before sort");
+      //Print_list(a, n, "Before sort");
    } else {
       Read_list(a, n);
    }
 
+   GET_TIME(start);
    Odd_even_sort(a, n);
+   GET_TIME(finish);
 
-   Print_list(a, n, "After sort");
-   
+   //Print_list(a, n, "After sort");
+   printf("%d %e\n", n, finish-start);
    free(a);
+     }
+   }
+
+
+
+   
    return 0;
 }  /* main */
 
@@ -92,9 +113,9 @@ void Get_args(int argc, char* argv[], int* n_p, char* g_i_p) {
 void Generate_list(int a[], int n) {
    int i;
 
-   srandom(0);
+   srand(0);
    for (i = 0; i < n; i++)
-      a[i] = random() % RMAX;
+      a[i] = rand() % RMAX;
 }  /* Generate_list */
 
 
