@@ -15,6 +15,7 @@
  */
 
 #include <stdio.h>
+#include "timer.h"
 
 double f(double x);    /* Function we're integrating */
 double Trap(double a, double b, int n, double h);
@@ -24,19 +25,41 @@ int main(void) {
    double  a, b;       /* Left and right endpoints   */
    int     n;          /* Number of trapezoids       */
    double  h;          /* Height of trapezoids       */
+   double start, finish;
 
+   /*
    printf("Enter a, b, and n\n");
    scanf("%lf", &a);
    scanf("%lf", &b);
    scanf("%d", &n);
+   */
+   int n_series[3] = {1000, 10000, 100000000}; 
 
+   for(int i = 0; i < 3;i++){
+
+     for(int j = 0; j < 100;j++){
+   
+   a = 1;
+   b = 100;
+   n = n_series[i];
+
+   GET_TIME(start);
+   
    h = (b-a)/n;
    integral = Trap(a, b, n, h);
-   
+
+   /*
    printf("With n = %d trapezoids, our estimate\n", n);
    printf("of the integral from %f to %f = %.15f\n",
       a, b, integral);
+   */
 
+   GET_TIME(finish);
+   printf("%d %e\n", n,  finish-start);
+   }
+   }
+
+   
    return 0;
 }  /* main */
 
