@@ -44,6 +44,8 @@ int main(void) {
    int my_rank, comm_sz, n, local_n;   
    double a, b, h, local_a, local_b;
    double local_int, total_int;
+   double start, finish, loc_elapsed, elapsed;
+   int n_series[3] = {1000, 10000, 100000000};
 
    /* Let the system do what it needs to start up MPI */
    MPI_Init(NULL, NULL);
@@ -54,7 +56,15 @@ int main(void) {
    /* Find out how many processes are being used */
    MPI_Comm_size(MPI_COMM_WORLD, &comm_sz);
 
+   /*
    Get_input(my_rank, comm_sz, &a, &b, &n);
+   */
+   a = 10;
+   b = 1000;
+
+   for (int i = 0; i < 3; i++){
+     n = n_series[i];
+     for(int j = 0; j< 100; j++){
 
    h = (b-a)/n;          /* h is the same for all processes */
    local_n = n/comm_sz;  /* So is the number of trapezoids  */
@@ -64,17 +74,24 @@ int main(void) {
     * starts at: */
    local_a = a + my_rank*local_n*h;
    local_b = local_a + local_n*h;
+   MPI_Barrier(MPI_COMM_WORLD);
+   start = MPI_Wtime();
    local_int = Trap(local_a, local_b, local_n, h);
-
+   
    /* Add up the integrals calculated by each process */
    MPI_Reduce(&local_int, &total_int, 1, MPI_DOUBLE, MPI_SUM, 0,
          MPI_COMM_WORLD);
 
+   finish = MPI_Wtime();
+   loc_elapsed = finish - start;
+   MPI_Reduce(&loc_elapsed, &elapsed, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
+
    /* Print the result */
    if (my_rank == 0) {
-      printf("With n = %d trapezoids, our estimate\n", n);
-      printf("of the integral from %f to %f = %.15e\n",
-          a, b, total_int);
+     printf("%d %e\n", n, elapsed);
+   }
+
+     }
    }
 
    /* Shut down MPI */
