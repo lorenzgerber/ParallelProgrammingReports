@@ -229,8 +229,6 @@ The absolute run-times values differ significantly from the benchmarked system i
 \end{figure}
 
 
-plot data points and markers for min, mean, median
-
 \section{3.22 - Timing the trapezoidal rule}
 How to choose n, the number of trapezoids.
 How does minima time compares to median.
@@ -239,6 +237,8 @@ efficiencies
 is it scalable?
 
 \section{3.27 - Speedup and efficienciy of odd-even sort}
+First it should be noted that the comparison between serial and parallel timings is based on different algorithms. For serial timings, `quick sort' was used and for the parallel `odd-even' sort. Both algorithms have a worst case performance of $O(n^{2})$ and a best-case performance of $O(n)$. Average performance of quick sort is $O(n log n$ while odd-even sort, when ignoring the communication overhead, shuould effectively perforam at $O(n)$ \cite{hanke_kth}. 
+
 \begin{table}[]
 \centering
 \caption{\textit{Speedups}}
@@ -267,7 +267,11 @@ is it scalable?
 \end{tabular}
 \end{table}
 
-is it scalable? Strongly or weakly?
+This observation fits well with the calculated speedups \ref{tab:speedups} and efficiencies \ref{tab:efficiencies}: At low number of processes, the parallel implementation exceeds even the theoretical ideal of linear speedups (2 processes, speedups: 2.05, 2.09, 2.05, 2.02, 2.09) and correspondingly also the efficiencies (1.02 - 1.05). However, with increasing number of processes, the overhead for communication increases hence, both speedups and efficiencies degrade somewhat. From a theoretical point of view, the communication overhead at a certain number of processes is a constant, hence it should `fall away' in the big O notation for big enough problem size. It can be seen that both speedups and efficiencies increase again at high number of processes for the largest problem sizes.
+
+Hence, for low number of processes odd-even sort is strongly scalable. For larger numbers of processes, the performance degrades somewhat but weakly scalable sounds here almost as an underestimation. However, by definition, it is weakly scalable. 
+ 
+
 
 \addcontentsline{toc}{section}{\refname}
 \bibliography{references}
@@ -617,7 +621,7 @@ int main(int argc, char *argv[]) {
 
 \end{verbatim}
 
-\section{C Source code for Exercise 3.18}
+\section{C Source code for Exercise 3.18}\label{app:code318}
 \begin{verbatim}
 #include <stdio.h>
 #include <mpi.h>
@@ -720,7 +724,7 @@ int Print_vector(int block_length, double** slice, double* vector, int vector_le
 }
 \end{verbatim}
 
-\section{C Source Code for Exercise 3.20}
+\section{C Source Code for Exercise 3.20}\label{app:code320}
 
 \begin{verbatim}
 /*------------------------------------------------------------------

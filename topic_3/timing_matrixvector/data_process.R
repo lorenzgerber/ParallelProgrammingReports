@@ -1,4 +1,42 @@
-#Importing the data
+#Importing the data for trapezoidal execrise
+setwd("~/git/ParallelProgrammingReports/topic_3/timing_trapezoidal")
+data1<-read.csv("serialtime.txt", sep=" ", header=FALSE)
+data2<-read.csv("slurm-6148670.txt", sep=" ", header=FALSE)
+data4<-read.csv("slurm-6149696.txt", sep=" ", header=FALSE)
+data8<-read.csv("slurm-61496997.txt", sep=" ", header=FALSE)
+data16<-read.csv("slurm-6149698.txt", sep=" ", header=FALSE)
+data1<-matrix(unlist(cbind(rep(1,300), data1)),300,3)
+data2<-matrix(unlist(cbind(rep(2,300), data2)),300,3)
+data4<-matrix(unlist(cbind(rep(4,300), data4)),300,3)
+data8<-matrix(unlist(cbind(rep(8,300), data8)),300,3)
+data16<-matrix(unlist(cbind(rep(16,300), data16)),300,3)
+data<-rbind(data1, data2)
+data<-rbind(data, data4)
+data<-rbind(data, data8)
+data<-rbind(data, data16)
+
+# create matrix with mean values
+mean_mat<-NULL
+for(i in c(1, 2, 4, 8, 16)){
+  for(j in c(1000, 10000, 100000000)){
+    mean_mat<-c(mean_mat,round(mean(data[which(data[,1] == i & data[,2] == j), 3])*1000,2))
+  }
+}
+mean_mat<-matrix(mean_mat, 5, 3, byrow=TRUE)
+
+# create matrix with median values
+median_mat<-NULL
+for(i in c(1, 2, 4, 8, 16)){
+  for(j in c(1000, 10000, 100000000)){
+    median_mat<-c(median_mat,round(median(data[which(data[,1] == i & data[,2] == j), 3])*1000, 2))
+  }
+}
+median_mat<-matrix(median_mat, 5, 3, byrow=TRUE)
+
+
+
+
+#Importing the data for matrix vector execrise
 setwd("~/git/ParallelProgrammingReports/topic_3/timing_matrixvector")
 data1<-read.csv("slurm-6146121.txt", sep=" ", header=FALSE)
 data2<-read.csv("slurm-6146122.txt", sep=" ", header=FALSE)
@@ -19,7 +57,7 @@ data<-rbind(data, data16)
 mean_mat<-NULL
 for(i in c(1, 2, 4, 8, 16)){
   for(j in c(1024, 2048, 4096, 8192, 16384)){
-    mean_mat<-c(mean_mat,mean(data[which(data[,1] == i & data[,2] == j), 3])*1000)
+    mean_mat<-c(mean_mat,round(mean(data[which(data[,1] == i & data[,2] == j), 3])*1000,2))
   }
 }
 mean_mat<-matrix(mean_mat, 5, 5, byrow=TRUE)
@@ -28,12 +66,12 @@ mean_mat<-matrix(mean_mat, 5, 5, byrow=TRUE)
 median_mat<-NULL
 for(i in c(1, 2, 4, 8, 16)){
   for(j in c(1024, 2048, 4096, 8192, 16384)){
-    median_mat<-c(median_mat,median(data[which(data[,1] == i & data[,2] == j), 3])*1000)
+    median_mat<-c(median_mat,round(median(data[which(data[,1] == i & data[,2] == j), 3])*1000,2))
   }
 }
 median_mat<-matrix(median_mat, 5, 5, byrow=TRUE)
 
-hist(data[which(data[,1] == 2 & data[,2] == 4096),3],nclass=100)
+hist(data[which(data[,1] == 2 & data[2] == 4096),3],nclass=100)
 
 par(mfcol=c(1,2))
 #Boxplot runtimes in relation to number of processes
