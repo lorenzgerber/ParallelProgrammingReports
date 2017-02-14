@@ -72,7 +72,207 @@
 This report is part of the mandatory coursework. It describes the solutions for several chosen exercises from the course book \cite{pacheco2011}.
 
 \section{3.2 - Generalization of algorithm for trapezoidal rule}
-Two functions to adapt the \textit{trapezoidal rule} for \verb+calc\_local\_a+ and \verb+calc\_local\_b+ were written and tested with the source code from the book (\textit{mpi\_trap.c}).
+Two functions to adapt the \textit{trapezoidal rule} for \verb+calc\_local\_a+ and \verb+calc\_local\_b+ were written and tested with the source code from the book (\textit{mpi\_trap.c}). The source can be found in appendix \ref{app:code32}.
+
+\section{3.6 - Array distributions}
+
+\subsection*{Block distribution}
+Block distribution can be obtained by $b = \floor*{i \div p}$ where $b$ is the block number, $i$ the index of $n$ and $p$ is the number of processes. This solution is however not fair. An improved, fair expression can be devised using ternary operators:
+\begin{equation*}
+i< n\bmod p \times \ceil*{n \div p} ? \floor*{i \div \ceil*{n \div p}} : n\mod p + \floor*{(i -n\mod p \times \ceil*{n \div p}) \div \floor*{n\mod p}}
+\end{equation*} 
+
+\subsection*{Cyclic distribution}
+Cyclic distribution is described by $b = i\mod p$ with $b$ as block number $i$ as index of $n$ and $p$ as number of processes. 
+
+\subsection*{Block cyclic distribution}
+Block cyclic distribution can be expressed as $b = \floor*{i \div l} mod p$ where $b$ is block index, $i$ index of $n$, $l$ block length and $p$ number of processes.
+
+\section{3.8 - Tree-structured algorithms for scatter and gather}
+The diagram for tree-structured scatter is shown in figure \ref{fig:scatter}. The arrows show the communication events which for the present case of \verb+comm_sz = 8+ and \verb+n = 16+ is 7. This is also true for the tree-structured gather shown in figure \ref{fig:gather}.
+\begin{figure}
+  \centering
+  \includegraphics[width=1\textwidth]{scatter.png}
+  \caption{\textit{This graph shows a tree based implementation of scatter for comm\_sz = 8 and n = 16. It has 7 communication events.}}
+  \label{fig:scatter}
+\end{figure}
+\begin{figure}
+
+  \centering
+  \includegraphics[width=1\textwidth]{gather.png}
+  \caption{\textit{This graph shows a tree based implementation of gather for comm\_sz = 8 and n = 16. It has 7 communication events.}}
+  \label{fig:gather}
+\end{figure}
+
+\section{3.9 - Vector scaling and dot product}
+The Source code for the vector scaling and dot product MPI program can be found in appendix \ref{app:code39}.
+
+
+\section{3.11 - Prefix sums}
+\subsection*{Serial Algorithm}
+Assume vector $x$ of length $n$ and prefix sums vector $y$ to be calculated.
+\begin{verbatim}
+y_0 = x_0
+for (i = 1, i < n , i++)
+    y_i = y_i-1 + n_i
+\end{verbatim}
+
+\subsection*{Parallel Algorithm}
+After Blelloch \cite{blelloch1990}, parallel prefix-sum, or `Sum Scan Algorithm' can be calculated in two steps, the `Up-sweep' (Reduce) and `Down-sweep'. Below, pseudo code from Valdez \cite{valdez2012} where $x$ is the input data, $n$ the size of the input and $d$ the number of processeors. If $n \neq 2^{k}$, then $n$ has to be extended with \textit{zero's}. The `Up-Sweep':
+\begin{verbatim}
+for d = 0 to log2(n) – 1 do 
+      for all k = 0 to n – 1 by 2^(d+1) in parallel do 
+           x[k +  2^(d+1) – 1] = x[k +  2^d  – 1] + x[k +  2^(d+1) – 1]
+\end{verbatim}
+
+The `Down-Sweep':
+\begin{verbatim}
+x[n – 1] = 0
+ for d = log2(n) – 1 down to 0 do 
+       for all k = 0 to n – 1 by 2^(d+1) in parallel do 
+            t = x[k +  2^d  – 1]
+            x[k +  2^d  – 1] = x[k +  2^(d+1) – 1]
+            x[k +  2^(d+1) – 1] = t +  x[k +  2^(d+1) – 1]
+
+\end{verbatim}
+
+\subsection*{Minimum Communication}
+An algorithm that uses for the prefix-sum of length $n = 2^k$ only $k$ communication steps can be derived from the communication model in a hypercube as shown in figure \ref{fig:hypercube}.
+
+\begin{figure}
+
+  \centering
+    \includegraphics[width=1\textwidth]{hypercube.png}
+    \caption{\textit{This figure shows the calculation of prefix sums with minimal communication phases. The figure is take from \cite[chap 4.3]{grama2003}}}
+    \label{fig:hypercube}
+\end{figure}
+
+Below follows pseudo code for parallel hypercube prefix sum (from \cite{grama2003}):
+
+\begin{verbatim}
+procedure PREFIX_SUMS_HCUBE(my_id, my number, d, result) 
+   begin 
+      result := my_number; 
+      msg := result; 
+      for i := 0 to d - 1 do 
+          partner := my_id XOR 2i; 
+          send msg to partner; 
+          receive number from partner; 
+          msg := msg + number; 
+          if (partner < my_id) then result := result + number; 
+      endfor; 
+   end PREFIX_SUMS_HCUBE
+\end{verbatim}
+
+
+
+\subsection*{MPI Program using MPI\_Scan}
+A minimal working example using MPI\_Scan was implemented. The source code can be found in appendix \ref{app:source311}. An array of random numbers are generated on each proces. Then the prefix sums are collected onto process zero. The prefix sums of the arrays are collected index wise. Arrays or length n and p processes will result in a n $\times$ p prefix sum array.  
+
+
+\section{3.13 - Generalization of vector scaling and dot product}
+An MPI program for `Vector Scaling and Dot Product' using `MPI\_Scatterv'/`MPI\_Gatherv' was written according to the specifications. The source code can be found in appendix \ref{app:source313}.
+
+\section{3.16 - Diagram for a butterfly implementation of allgather}
+Figure \ref{fig:allgather} shows an diagram for an \textit{allgather} implementation using \textit{butterfly} communication. The exmples shows the communication steps for 8 processes and a data vector length of 16.  
+\begin{figure}
+  \centering
+    \includegraphics[width=1\textwidth]{allgather.png}
+    \caption{\textit{This figure shows a butterfly allgather implementation for 8 cores and a vector of length 16.}}
+    \label{fig:allgather}
+\end{figure}
+
+
+
+\section{3.18 - Derived data types}
+Here \verb+MPI\_Type\_vector+ was used to implement a derived data type to represent a block cyclic data distribution. The current implementation assumes that the data is even divisible by blocksize $\times$ processes. This allows to use only one data type definition for the full length block cyclic structe of one process. The source code can be found in appendix \ref{app:source318}
+
+\section{3.20 - Pack and unpack}
+The MPI functions MPI\_Pack and MPI\_Unpack were used transfer complex datastructures. As example, a new \textit{Get\_input} function for the `trapezoidal sum' program was written that transfers the data from process 0to all processes. The source code of the modified \textit{Get\_input} function can be found in appendix \ref{app:source320}.
+
+\section{3.21 - Matrix-vector multiplication}
+The `Matrix-vector multiplication' program from the course book was run on the HPC2N \textit{Abisko} cluster for benchmarking and comparison to the values in the course book. Herefore the source \textit{mpi\_mat\_vect\_time.c} provided from the coursebooks homepage was compiled with MPI-gcc compiler on the Abisko cluster. Problemsize and process number were chosen accoring to the example in the course book.
+
+\subsection{Speed comparison}
+The absolute run-times values differ significantly from the benchmarked system in the book, see \cite[p. 123]{pacheo2011} and table \ref{tab:runtimes}. The bechmarking was run on the `abisko' cluster with the setting to run one process per node. For such a small program, this was performance wise probably not the most optimal choice: It can be seen in table \ref{tab:runtimes} that all runtimes for 16 processes are longer than those for respective problem size and fewer processes. Most likely, this is due to the higher communication overhead.  
+\begin{table}[]
+\centering
+\caption{Median runtimes for the Matrix-Vector Multiplication. The program was run on the HPC2N `abisko' cluster. Processes were assigned to individual nodes.}
+\label{tab:runtimes}
+\begin{tabular}{cccccc}
+\multicolumn{1}{l|}{}         & \multicolumn{5}{l|}{Order of Matrix (milliseconds)}                                                                   \\ \cline{2-6} 
+\multicolumn{1}{l|}{comm\_sz} & \multicolumn{1}{c|}{1024} & \multicolumn{1}{c|}{2048} & \multicolumn{1}{c|}{4096} & \multicolumn{1}{c|}{8192} & 16384 \\
+1                             & 0.01                      & 0.02                      & 0.03                      & 0.07                      & 0.14  \\
+2                             & 0.01                      & 0.02                      & 0.02                      & 0.04                      & 0.08  \\
+4                             & 0.01                      & 0.02                      & 0.02                      & 0.03                      & 0.04  \\
+8                             & 0.02                      & 0.02                      & 0.02                      & 0.02                      & 0.03  \\
+16                            & 0.03                      & 0.03                      & 0.03                      & 0.03                      & 0.05 
+\end{tabular}
+\end{table}
+
+
+\subsection{Observed variabilities}
+\begin{figure}
+  \centering
+    \includegraphics[width=1\textwidth]{boxplot.png}
+    \caption{\textit{This figure shows boxplot of runtimes in relation to number of processes and problem size.}}
+    \label{fig:boxplot}
+\end{figure}
+
+
+\subsection{Cluster around Minmum, mean, median}
+\begin{figure}
+  \centering
+    \includegraphics[width=1\textwidth]{spread.png}
+    \caption{\textit{This figure shows the normalized ranges of runtimes to compare mimima, maxima, median and mean values. Mean values are marked by a red square and median values by a blue cirlce}}
+    \label{fig:spread}
+\end{figure}
+
+
+plot data points and markers for min, mean, median
+
+\section{3.22 - Timing the trapezoidal rule}
+How to choose n, the number of trapezoids.
+How does minima time compares to median.
+speedups
+efficiencies
+is it scalable?
+
+\section{3.27 - Speedup and efficienciy of odd-even sort}
+\begin{table}[]
+\centering
+\caption{\textit{Speedups}}
+\label{tab:speedups}
+\begin{tabular}{llllll}
+\multicolumn{1}{l|}{}          & \multicolumn{5}{c}{number of keys}                                                                                 \\ \cline{2-6} 
+\multicolumn{1}{l|}{processes} & \multicolumn{1}{l|}{200} & \multicolumn{1}{l|}{400} & \multicolumn{1}{l|}{800} & \multicolumn{1}{l|}{1600} & 3200  \\ \hline
+2                              & 2.05                     & 2.09                     & 2.05                     & 2.02                      & 2.09  \\
+4                              & 4.00                     & 4.13                     & 4.06                     & 4.15                      & 4.19  \\
+8                              & 7.33                     & 7.92                     & 7.65                     & 7.55                      & 8.18  \\
+16                             & 11.73                    & 13.57                    & 13.45                    & 13.83                     & 13.85
+\end{tabular}
+\end{table}
+
+\begin{table}[]
+\centering
+\caption{\textit{Efficencies}}
+\label{tab:efficiencies}
+\begin{tabular}{llllll}
+\multicolumn{1}{l|}{}          & \multicolumn{5}{c}{number of keys}                                                                                \\ \cline{2-6} 
+\multicolumn{1}{l|}{processes} & \multicolumn{1}{l|}{200} & \multicolumn{1}{l|}{400} & \multicolumn{1}{l|}{800} & \multicolumn{1}{l|}{1600} & 3200 \\ \hline
+2                              & 1.02                     & 1.04                     & 1.03                     & 1.03                      & 1.05 \\
+4                              & 1.00                     & 1.03                     & 1.02                     & 1.04                      & 1.05 \\
+8                              & 0.92                     & 0.99                     & 0.96                     & 0.94                      & 1.02 \\
+16                             & 0.73                     & 0.85                     & 0.84                     & 0.86                      & 0.87
+\end{tabular}
+\end{table}
+
+is it scalable? Strongly or weakly?
+
+\addcontentsline{toc}{section}{\refname}
+\bibliography{references}
+\appendix
+\section{C Source Code for Exercise 3.2}{\label{app:code32}
 
 \begin{verbatim}
 double calc_local_a(int my_rank, double a, double b, int n, int comm_sz){
@@ -114,37 +314,7 @@ double calc_local_b(int my_rank, double a, double b, int n, int comm_sz){
 
 \end{verbatim}
 
-\section{3.6 - Array distributions}
-
-\subsection*{Block distribution}
-Block distribution can be obtained by $b = \floor*{i \div p}$ where $b$ is the block number, $i$ the index of $n$ and $p$ is the number of processes. This solution is however not fair. An improved, fair expression can be devised using a ternary operator:
-\begin{equation*}
-i< n\bmod p \times \ceil*{n \div p} ? \floor*{i \div \ceil*{n \div p}} : n\mod p + \floor*{(i -n\mod p \times \ceil*{n \div p}) \div \floor*{n\mod p}}
-\end{equation*} 
-
-\subsection*{Cyclic distribution}
-Cyclic distribution is described by $b = i\mod p$ with $b$ as block number $i$ as index of $n$ and $p$ as number of processes. 
-
-\subsection*{Block cyclic distribution}
-Block cyclic distribution can be expressed as $b = \floor*{i \div l} mod p$ where $b$ is block index, $i$ index of $n$, $l$ block length and $p$ number of processes.
-
-\section{3.8 - Tree-structured algorithms for scatter and gather}
-\begin{figure}
-
-  \centering
-  \includegraphics[width=1\textwidth]{scatter.png}
-  \caption{\textit{This graph shows a tree based implementation of scatter for comm\_sz = 8 and n = 16.}}
-  \label{fig:scatter}
-\end{figure}
-\begin{figure}
-
-  \centering
-  \includegraphics[width=1\textwidth]{gather.png}
-  \caption{\textit{This graph shows a tree based implementation of gather for comm\_sz = 8 and n = 16.}}
-  \label{fig:gather}
-\end{figure}
-
-\section{3.9 - Vector scaling and dot product}
+\section{C Source Code for Exercise 3.9}{\label{app:code39}}
 \begin{verbatim}
 #include <stdio.h>
 #include <mpi.h>
@@ -263,66 +433,7 @@ int main(int argc, char *argv[]) {
 } 
 \end{verbatim}
 
-\section{3.11 - Prefix sums}
-\subsection*{Serial Algorithm}
-Assume vector $x$ of length $n$ and prefix sums vector $y$ to be calculated.
-\begin{verbatim}
-y_0 = x_0
-for (i = 1, i < n , i++)
-    y_i = y_i-1 + n_i
-\end{verbatim}
-
-\subsection*{Parallel Algorithm}
-After Blelloch \cite{blelloch1990}, parallel prefix-sum, or `Sum Scan Algorithm' can be calculated in two steps, the `Up-sweep' (Reduce) and `Down-sweep'. Pseudo code from M. Valdez \cite{valdez2012} where $x$ is the input data, $n$ the size of the input and $d$ the number of processeors. If $n \neq 2^{k}$, then $n$ has to be extended with \textit{zero's}. The `Up-Sweep':
-\begin{verbatim}
-for d = 0 to log2(n) – 1 do 
-      for all k = 0 to n – 1 by 2^(d+1) in parallel do 
-           x[k +  2^(d+1) – 1] = x[k +  2^d  – 1] + x[k +  2^(d+1) – 1]
-\end{verbatim}
-
-The `Down-Sweep':
-\begin{verbatim}
-x[n – 1] = 0
- for d = log2(n) – 1 down to 0 do 
-       for all k = 0 to n – 1 by 2^(d+1) in parallel do 
-            t = x[k +  2^d  – 1]
-            x[k +  2^d  – 1] = x[k +  2^(d+1) – 1]
-            x[k +  2^(d+1) – 1] = t +  x[k +  2^(d+1) – 1]
-
-\end{verbatim}
-
-\subsection*{Minimum Communication}
-An algorithm that uses for the prefix-sum of length $n = 2^k$ only $k$ communication steps can be derived from the communication model in a hypercube as shown in figure \ref{fig:hypercube}.
-
-\begin{figure}
-
-  \centering
-    \includegraphics[width=1\textwidth]{hypercube.png}
-    \caption{This figure shows the calculation of prefix sums with minimal communication phases. The figure is take from \cite[chap 4.3]{grama2003}}
-    \label{fig:hypercube}
-\end{figure}
-
-Below follows pseudo code for parallel hypercube prefix sum (from \cite{grama2003}):
-
-\begin{verbatim}
-procedure PREFIX_SUMS_HCUBE(my_id, my number, d, result) 
-   begin 
-      result := my_number; 
-      msg := result; 
-      for i := 0 to d - 1 do 
-          partner := my_id XOR 2i; 
-          send msg to partner; 
-          receive number from partner; 
-          msg := msg + number; 
-          if (partner < my_id) then result := result + number; 
-      endfor; 
-   end PREFIX_SUMS_HCUBE
-\end{verbatim}
-
-
-
-\subsection*{MPI Program using MPI\_Scan}
-A minimal working example using MPI\_Scan.
+\section{C Source Code for Exercise 3.11}{\label{app:source311}
 \begin{verbatim}
 #include <stdio.h>
 #include <stdlib.h>
@@ -364,10 +475,7 @@ int main(void){
 }
 \end{verbatim}
 
-\section{3.13 - Generalization of vector scaling and dot product}
-
-Below follows an implementation of the `Vector Scaling and Dot Product' using `MPI\_Scatterv'/`MPI\_Gatherv'.
-
+\section{C Source Code for Exercise 3.13}{\label{app:source313}
 \begin{verbatim}
 #include <stdio.h>
 #include <mpi.h>
@@ -509,51 +617,145 @@ int main(int argc, char *argv[]) {
 
 \end{verbatim}
 
+\section{C Source code for Exercise 3.18}
+\begin{verbatim}
+#include <stdio.h>
+#include <mpi.h>
+#include <stdlib.h>
 
 
-\section{3.16 - Diagram for a butterfly implementation of allgather}
+int Read_vector(int block_length, double* vector, double** slice,  int vector_length, int rank, int comm_sz);
 
-\begin{tikzpicture}
-\foreach \x in {1,3,5, 7, 9, 11, 13, 15}
-  \draw (\x,1) circle (0.5)
-  \node at (\x,1) {\x};
+int Print_vector(int block_length, double** slice, double* vector, int vector_length, int rank, int comm_sz);
 
+int main(void) {
+  int my_rank, comm_sz;
+  double vec[18] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17};
+  double readback[18] = { 0 };
+  double * slice;
 
+  MPI_Init(NULL, NULL);
+  MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
+  MPI_Comm_size(MPI_COMM_WORLD, &comm_sz);
+  
+  Read_vector(2, vec, &slice,  18, my_rank, comm_sz);
+  Print_vector(2, &slice, readback, 18, my_rank, comm_sz);
 
-\node at (1,1) {0};
-\node at (3,1) {1};
-\node at (5,1) {2};
-\node at (7,1) {3};
-\node at (9,1) {4};
-\node at (11,1) {5};
-\node at (13,1) {6};
-\node at (15,1) {7};
+  /* Print out the result */
+  if(my_rank == 0){
+    printf("The vector after round Read_vector and Print_vector on Core 0:\n");
+    for(int i = 0; i < 18; i++){
+      printf("i %d: %f\n", i, readback[i]);
+    }
+  }
 
-\end{tikzpicture}
-
-
-\section{3.18 - Derived data types}
-takes a while to solve
-requires programming
-
-\section{3.20 - Pack and unpack}
-requires programming
-
-
-\section{3.21 - Matrix-vector multiplication}
-takes a while to solve
-requires programming
-requires testing
-
-\section{3.22 - Timing the trapezoidal rule}
-takes a while to solve
-Requires programming
-requires testing
-
-\section{3.27 - Speedup and efficienciy of odd-even sort}
+  /* Clean up */
+  MPI_Finalize();
+  free(slice);
+  return 0;
+}
 
 
-\addcontentsline{toc}{section}{\refname}
-\bibliography{references}
+int Read_vector(int block_length, double* vector, double** slice, int vector_length, int my_rank, int comm_sz){
+
+  /* calc block cyclic distro */
+  int no_cycles = vector_length / (block_length * comm_sz);
+  int cycle_block_length = block_length * comm_sz;
+  int slice_length = no_cycles * block_length;
+
+  /* define data type */
+  MPI_Datatype block_cyclic;
+  MPI_Type_vector(no_cycles, block_length, cycle_block_length, MPI_DOUBLE, &block_cyclic);
+  MPI_Type_commit(&block_cyclic);
+  MPI_Status info;
+  
+  if (my_rank == 0){
+    
+    for (int i = 1; i < comm_sz;i++){
+      MPI_Send(&vector[i*block_length],1,block_cyclic,i,99,MPI_COMM_WORLD);      
+    }
+    *slice = (double *) calloc(slice_length, sizeof(double));
+    MPI_Sendrecv(&vector[0], 1, block_cyclic, 0, 99,
+		 *slice, slice_length, MPI_DOUBLE, 0, 99, MPI_COMM_WORLD, &info);
+  } else {
+    *slice = (double *) calloc(slice_length, sizeof(double));      
+      MPI_Recv(*slice,slice_length,MPI_DOUBLE, 0, 99, MPI_COMM_WORLD, &info);
+  }
+
+  /* Clean up */
+  MPI_Type_free(&block_cyclic);
+
+  return 0;
+}
+
+
+int Print_vector(int block_length, double** slice, double* vector, int vector_length, int my_rank, int comm_sz){
+
+  /* calc block cyclic distro */
+  int no_cycles = vector_length / (block_length * comm_sz);
+  int cycle_block_length = block_length * comm_sz;
+  int slice_length = no_cycles * block_length;
+  
+  /* define data type */
+  MPI_Datatype block_cyclic;
+  MPI_Type_vector(no_cycles, block_length, cycle_block_length, MPI_DOUBLE, &block_cyclic);
+  MPI_Type_commit(&block_cyclic);
+  MPI_Status info;
+    
+  if(my_rank != 0){
+      MPI_Send(*slice,slice_length,MPI_DOUBLE, 0, 99, MPI_COMM_WORLD);    
+
+  } else {
+    for (int i = 1; i < comm_sz;i++){
+      MPI_Recv(&vector[i*block_length],1,block_cyclic,i,99,MPI_COMM_WORLD, &info);      
+    }
+    MPI_Sendrecv(*slice, slice_length, MPI_DOUBLE, 0, 99, &vector[0], 1,
+		 block_cyclic, 0, 99, MPI_COMM_WORLD, &info);
+  }
+
+  /* Clean up */
+  MPI_Type_free(&block_cyclic);
+  
+  return 0;
+}
+\end{verbatim}
+
+\section{C Source Code for Exercise 3.20}
+
+\begin{verbatim}
+/*------------------------------------------------------------------
+ * Function:     Get_input
+ * Purpose:      Get the user input:  the left and right endpoints
+ *               and the number of trapezoids
+ * Input args:   my_rank:  process rank in MPI_COMM_WORLD
+ *               comm_sz:  number of processes in MPI_COMM_WORLD
+ * Output args:  a_p:  pointer to left endpoint               
+ *               b_p:  pointer to right endpoint               
+ *               n_p:  pointer to number of trapezoids
+ */
+void Get_input(int my_rank, int comm_sz, double* a_p, double* b_p,
+      int* n_p) {
+
+  char pack_buf[100];
+  int position = 0;
+
+   if (my_rank == 0) {
+      printf("Enter a, b, and n\n");
+      scanf("%lf %lf %d", a_p, b_p, n_p);
+
+      MPI_Pack(&a_p, 1, MPI_DOUBLE, pack_buf, 100, &position, MPI_COMM_WORLD);
+      MPI_Pack(&b_p, 1, MPI_DOUBLE, pack_buf, 100, &position, MPI_COMM_WORLD);
+      MPI_Pack(&n_p, 1, MPI_INT, pack_buf, 100, &position, MPI_COMM_WORLD);
+   }
+
+   MPI_Bcast(pack_buf, 100, MPI_PACKED, 0, MPI_COMM_WORLD);
+
+   if(my_rank != 0) {
+     MPI_Unpack(pack_buf, 100, &position, a_p, 1, MPI_DOUBLE, MPI_COMM_WORLD);
+     MPI_Unpack(pack_buf, 100, &position, b_p, 1, MPI_DOUBLE, MPI_COMM_WORLD);
+     MPI_Unpack(pack_buf, 100, &position, n_p, 1, MPI_INT, MPI_COMM_WORLD);
+   }
+}  /* Get_input */
+\end{verbatim}
 
 \end{document}
