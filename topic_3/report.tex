@@ -72,7 +72,7 @@
 This report is part of the mandatory coursework. It describes the solutions for several chosen exercises from the course book \cite{pacheco2011}.
 
 \section{3.2 - Generalization of algorithm for trapezoidal rule}
-Two functions to adapt the \textit{trapezoidal rule} for \verb+calc\_local\_a+ and \verb+calc\_local\_b+ were written and tested with the source code from the book (\textit{mpi\_trap.c}). The source can be found in appendix \ref{app:code32}.
+Two functions to adapt the \textit{trapezoidal rule} for \verb+calc\_local\_a+ and \verb+calc\_local\_b+ were written and tested with the source code from the book (\textit{mpi\_trap.c}). The source can be found in appendix \ref{app:source32}.
 
 \section{3.6 - Array distributions}
 
@@ -105,7 +105,7 @@ The diagram for tree-structured scatter is shown in figure \ref{fig:scatter}. Th
 \end{figure}
 
 \section{3.9 - Vector scaling and dot product}
-The Source code for the vector scaling and dot product MPI program can be found in appendix \ref{app:code39}.
+The Source code for the vector scaling and dot product MPI program can be found in appendix \ref{app:source39}.
 
 
 \section{3.11 - Prefix sums}
@@ -188,7 +188,7 @@ Figure \ref{fig:allgather} shows an diagram for an \textit{allgather} implementa
 Here \verb+MPI\_Type\_vector+ was used to implement a derived data type to represent a block cyclic data distribution. The current implementation assumes that the data is even divisible by blocksize $\times$ processes. This allows to use only one data type definition for the full length block cyclic structe of one process. The source code can be found in appendix \ref{app:source318}
 
 \section{3.20 - Pack and unpack}
-The MPI functions MPI\_Pack and MPI\_Unpack were used transfer complex datastructures. As example, a new \textit{Get\_input} function for the `trapezoidal sum' program was written that transfers the data from process 0to all processes. The source code of the modified \textit{Get\_input} function can be found in appendix \ref{app:source320}.
+The MPI functions MPI\_Pack and MPI\_Unpack were used transfer complex datastructures. As example, a new \textit{Get\_input} function for the `trapezoidal sum' program was written that transfers the data from process 0 to all processes. The source code of the modified \textit{Get\_input} function can be found in appendix \ref{app:source320}.
 
 \section{3.21 - Matrix-vector multiplication}
 The `Matrix-vector multiplication' program from the course book was run on the HPC2N \textit{Abisko} cluster for benchmarking and comparison to the values in the course book. Herefore the source \textit{mpi\_mat\_vect\_time.c} provided from the coursebooks homepage was compiled with MPI-gcc compiler on the Abisko cluster. Problemsize and process number were chosen accoring to the example in the course book.
@@ -197,7 +197,7 @@ The `Matrix-vector multiplication' program from the course book was run on the H
 The absolute run-times values differ significantly from the benchmarked system in the book, see \cite[p. 123]{pacheco2011} and table \ref{tab:runtimes}. The bechmarking was run on the `abisko' cluster with the setting to run one process per node. For such a small program, this was performance wise probably not the most optimal choice: It can be seen in table \ref{tab:runtimes} that all runtimes for 16 processes are longer than those for respective problem size and fewer processes. Most likely, this is due to the higher communication overhead.  
 \begin{table}[]
 \centering
-\caption{Median runtimes for the Matrix-Vector Multiplication. The program was run on the HPC2N `abisko' cluster. Processes were assigned to individual nodes.}
+\caption{\textit{Median runtimes for the Matrix-Vector Multiplication. The program was run on the HPC2N `abisko' cluster. Processes were assigned to individual nodes.}}
 \label{tab:runtimes}
 \begin{tabular}{cccccc}
 \multicolumn{1}{l|}{}         & \multicolumn{5}{l|}{Order of Matrix (milliseconds)}                                                                   \\ \cline{2-6} 
@@ -212,6 +212,7 @@ The absolute run-times values differ significantly from the benchmarked system i
 
 
 \subsection{Observed variabilities}
+Variability was assessed using boxplots, see figure \ref{fig:boxplot}.
 \begin{figure}
   \centering
     \includegraphics[width=1\textwidth]{boxplot.png}
@@ -220,7 +221,11 @@ The absolute run-times values differ significantly from the benchmarked system i
 \end{figure}
 
 
+
 \subsection{Cluster around Minmum, mean, median}
+
+For the clustering of minumum, mean and median, plot showing the timings normalized to their respective largest value were plotted. In each plot series, mean and median were also shown (Figure \ref{fig:spread}).
+
 \begin{figure}
   \centering
     \includegraphics[width=1\textwidth]{spread.png}
@@ -230,11 +235,92 @@ The absolute run-times values differ significantly from the benchmarked system i
 
 
 \section{3.22 - Timing the trapezoidal rule}
-How to choose n, the number of trapezoids.
+The problem size should be select in a way that the runtimes occour in a regime that is measurable with the given precision of the timing functionality. Further, it is favourable to have a series of multiples i.e the double, the quadruple etc. Here it was chose to use the series 65536, 131072, 262144, 524288, 1048576 as problem size n for the number of trapezoids.
+
+Here, the parameters for the batch runs on HPC2N's `abisko' were chose to assign one processor for each process instead of a whole node for each process. This had certainly a positive effect on lowering the communication overhead for higher number of processes. 
+
+\begin{table}[]
+\centering
+\caption{\textit{This table shows the mean of the benchmarking values for the trapezoidal rule}}
+\label{tab:mean_trap}
+\begin{tabular}{llllll}
+\multicolumn{1}{l|}{}          & \multicolumn{5}{c}{number of trapezoids}                                                                                       \\ \cline{2-6} 
+\multicolumn{1}{l|}{processes} & \multicolumn{1}{l|}{65536} & \multicolumn{1}{l|}{131072} & \multicolumn{1}{l|}{262144} & \multicolumn{1}{l|}{524288} & 1048576 \\ \hline
+1                              & 0.73                       & 1.36                        & 2.70                        & 5.39                        & 10.77   \\
+2                              & 0.31                       & 0.62                        & 1.23                        & 2.46                        & 4.91    \\
+4                              & 0.16                       & 0.33                        & 0.67                        & 1.29                        & 2.59    \\
+8                              & 0.09                       & 0.17                        & 0.33                        & 0.66                        & 1.32    \\
+16                             & 0.27                       & 0.10                        & 0.22                        & 0.35                        & 0.73   
+\end{tabular}
+\end{table}
+
+In most cases, median (table \ref{tab:median_trap}) and mean values (\ref{tab:mean_trap}) were just a few digits apart, with the median always being the lower. However, in some cases the sensitivity of the mean towards outliers can be see. For example for the mean time of $p = 16$ ane $n = 65536$ where the mean is significanly off from the media value. 
+
+\begin{table}[]
+\centering
+\caption{\textit{This table shows the median of the benchmarking values for the trapezoidal rule.}}
+\label{tab:median_trap}
+\begin{tabular}{llllll}
+\multicolumn{1}{l|}{}          & \multicolumn{5}{c}{number of trapezoids}                                                                                       \\ \cline{2-6} 
+\multicolumn{1}{l|}{processes} & \multicolumn{1}{l|}{65536} & \multicolumn{1}{l|}{131072} & \multicolumn{1}{l|}{262144} & \multicolumn{1}{l|}{524288} & 1048576 \\ \hline
+1                              & 0.67                       & 1.34                        & 2.70                        & 5.38                        & 10.77   \\
+2                              & 0.31                       & 0.61                        & 1.22                        & 2.46                        & 4.91    \\
+4                              & 0.17                       & 0.33                        & 0.67                        & 1.32                        & 2.59    \\
+8                              & 0.09                       & 0.17                        & 0.34                        & 0.67                        & 1.33    \\
+16                             & 0.06                       & 0.10                        & 0.18                        & 0.35                        & 0.70   
+\end{tabular}
+\end{table}
+
+The minima values \ref{tab:minima_trap} are all consistently smaller than the median values \ref{tab:median_trap}, however it's not a large difference. 
+
+
+\begin{table}[]
+\centering
+\caption{\textit{This table shows the minima values for the trapeziodal rule algorithm.}}
+\label{tab:minima_trap}
+\begin{tabular}{llllll}
+\multicolumn{1}{l|}{}          & \multicolumn{5}{c}{number of trapezoids}                                                                                       \\ \cline{2-6} 
+\multicolumn{1}{l|}{processes} & \multicolumn{1}{l|}{65536} & \multicolumn{1}{l|}{131072} & \multicolumn{1}{l|}{262144} & \multicolumn{1}{l|}{524288} & 1048576 \\ \hline
+1                              & 0.67                       & 1.33                        & 2.62                        & 5.34                        & 10.72   \\
+2                              & 0.29                       & 0.58                        & 1.16                        & 2.33                        & 4.86    \\
+4                              & 0.15                       & 0.30                        & 0.60                        & 1.19                        & 2.51    \\
+8                              & 0.08                       & 0.15                        & 0.30                        & 0.60                        & 1.20    \\
+16                             & 0.05                       & 0.09                        & 0.18                        & 0.34                        & 0.66   
+\end{tabular}
+\end{table}
+
+
 How does minima time compares to median.
-speedups
-efficiencies
-is it scalable?
+
+\begin{table}[]
+\centering
+\caption{\textit{This table shows the sppedups for the trapezidoal rule algorithm.}}
+\label{tab:speedup_trap}
+\begin{tabular}{llllll}
+\multicolumn{1}{l|}{}          & \multicolumn{5}{c}{number of trapezoids}                                                                                       \\ \cline{2-6} 
+\multicolumn{1}{l|}{processes} & \multicolumn{1}{l|}{65536} & \multicolumn{1}{l|}{131072} & \multicolumn{1}{l|}{262144} & \multicolumn{1}{l|}{524288} & 1048576 \\ \hline
+2                              & 2.16                       & 2.20                        & 2.21                        & 2.19                        & 2.19    \\
+4                              & 3.94                       & 4.06                        & 4.03                        & 4.08                        & 4.16    \\
+8                              & 7.44                       & 7.88                        & 7.94                        & 8.03                        & 8.10    \\
+16                             & 11.17                      & 13.40                       & 15.00                       & 15.37                       & 15.39  
+\end{tabular}
+\end{table}
+
+\begin{table}[]
+\centering
+\caption{\textit{This table shows the efficiencies for the trapezoidal rule algorithm.}}
+\label{tab:efficiencies_trap}
+\begin{tabular}{llllll}
+\multicolumn{1}{l|}{}          & \multicolumn{5}{c}{number of trapezoids}                                                                                       \\ \cline{2-6} 
+\multicolumn{1}{l|}{processes} & \multicolumn{1}{l|}{65536} & \multicolumn{1}{l|}{131072} & \multicolumn{1}{l|}{262144} & \multicolumn{1}{l|}{524288} & 1048576 \\ \hline
+2                              & 1.08                       & 1.10                        & 1.11                        & 1.09                        & 1.10    \\
+4                              & 0.99                       & 1.02                        & 1.01                        & 1.02                        & 1.04    \\
+8                              & 0.93                       & 0.99                        & 0.99                        & 1.00                        & 1.01    \\
+16                             & 0.70                       & 0.84                        & 0.94                        & 0.96                        & 0.96   
+\end{tabular}
+\end{table}
+
+The benchmark of the trapezoidal rule algorithm resulted for low number of process values in improbable speedup and efficiency values (too good). However, the serial algorith was run on a normal machine that could be slower than the individual dedicated HPC2N machines. At a intermediate number of processes the algorithm has an almost linear speedup and respevtive efficiencies. At larger numbers of processes, the communication overhead degrades the performance a bit. However, the tested larger problem sizes could still make up for it. The algorithm is certainly weakly scalable, in some domains even strongly scalable.  
 
 \section{3.27 - Speedup and efficienciy of odd-even sort}
 First it should be noted that the comparison between serial and parallel timings is based on different algorithms. For serial timings, `quick sort' was used and for the parallel `odd-even' sort. Both algorithms have a worst case performance of $O(n^{2})$ and a best-case performance of $O(n)$. Average performance of quick sort is $O(n log n$ while odd-even sort, when ignoring the communication overhead, shuould effectively perforam at $O(n)$ \cite{hanke_kth}. 
@@ -276,7 +362,7 @@ Hence, for low number of processes odd-even sort is strongly scalable. For large
 \addcontentsline{toc}{section}{\refname}
 \bibliography{references}
 \appendix
-\section{C Source Code for Exercise 3.2}{\label{app:code32}
+\section{C Source Code for Exercise 3.2}{\label{app:source32}
 
 \begin{verbatim}
 double calc_local_a(int my_rank, double a, double b, int n, int comm_sz){
@@ -318,7 +404,7 @@ double calc_local_b(int my_rank, double a, double b, int n, int comm_sz){
 
 \end{verbatim}
 
-\section{C Source Code for Exercise 3.9}{\label{app:code39}}
+\section{C Source Code for Exercise 3.9}{\label{app:source39}}
 \begin{verbatim}
 #include <stdio.h>
 #include <mpi.h>
@@ -621,7 +707,7 @@ int main(int argc, char *argv[]) {
 
 \end{verbatim}
 
-\section{C Source code for Exercise 3.18}\label{app:code318}
+\section{C Source code for Exercise 3.18}\label{app:source318}
 \begin{verbatim}
 #include <stdio.h>
 #include <mpi.h>
@@ -724,7 +810,7 @@ int Print_vector(int block_length, double** slice, double* vector, int vector_le
 }
 \end{verbatim}
 
-\section{C Source Code for Exercise 3.20}\label{app:code320}
+\section{C Source Code for Exercise 3.20}\label{app:source320}
 
 \begin{verbatim}
 /*------------------------------------------------------------------
