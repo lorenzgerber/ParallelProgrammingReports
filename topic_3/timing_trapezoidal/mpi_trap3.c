@@ -45,7 +45,7 @@ int main(void) {
    double a, b, h, local_a, local_b;
    double local_int, total_int;
    double start, finish, loc_elapsed, elapsed;
-   int n_series[3] = {1000, 10000, 100000000};
+   int n_series[5] = {65536, 131072, 262144, 524288, 1048576};
 
    /* Let the system do what it needs to start up MPI */
    MPI_Init(NULL, NULL);
@@ -62,7 +62,7 @@ int main(void) {
    a = 10;
    b = 1000;
 
-   for (int i = 0; i < 3; i++){
+   for (int i = 0; i < 5; i++){
      n = n_series[i];
      for(int j = 0; j< 100; j++){
 

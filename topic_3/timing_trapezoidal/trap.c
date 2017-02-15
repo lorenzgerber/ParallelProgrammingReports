@@ -33,9 +33,9 @@ int main(void) {
    scanf("%lf", &b);
    scanf("%d", &n);
    */
-   int n_series[3] = {1000, 10000, 100000000}; 
+   int n_series[5] = {65536, 131072, 262144, 524288, 1048576}; 
 
-   for(int i = 0; i < 3;i++){
+   for(int i = 0; i < 5;i++){
 
      for(int j = 0; j < 100;j++){
    
