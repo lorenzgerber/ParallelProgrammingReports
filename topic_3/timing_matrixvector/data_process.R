@@ -33,6 +33,14 @@ for(i in c(1, 2, 4, 8, 16)){
 }
 median_mat<-matrix(median_mat, 5, 5, byrow=TRUE)
 
+# create matrix with min values
+min_mat<-NULL
+for(i in c(1, 2, 4, 8, 16)){
+  for(j in c(65536, 131072, 262144, 524288, 1048576)){
+    min_mat<-c(min_mat,round(min(data[which(data[,1] == i & data[,2] == j), 3])*1000, 2))
+  }
+}
+min_mat<-matrix(min_mat, 5, 5, byrow=TRUE)
 
 
 
