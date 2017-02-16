@@ -77,10 +77,25 @@ Two functions to adapt the \textit{trapezoidal rule} for \verb+calc\_local\_a+ a
 \section{3.6 - Array distributions}
 
 \subsection*{Block distribution}
-Block distribution can be obtained by $b = \floor*{i \div p}$ where $b$ is the block number, $i$ the index of $n$ and $p$ is the number of processes. This solution is however not fair. An improved, fair expression can be devised using ternary operators:
-\begin{equation*}
-i< n\bmod p \times \ceil*{n \div p} ? \floor*{i \div \ceil*{n \div p}} : n\mod p + \floor*{(i -n\mod p \times \ceil*{n \div p}) \div \floor*{n\mod p}}
-\end{equation*} 
+Block distribution can be obtained by $b = \floor*{i \div p}$ where $b$ is the block number, $i$ the index of $n$ and $p$ is the number of processes. This solution is however not fair. An improved, fair expression can be devised using ternary operators:\\
+$n\mod p==0?\floor*{i\div p}:i<n\bmod p\times\ceil*{n\div p}?\floor*{i\div\ceil*{n\div p}}:$\\
+$n\mod p+\floor*{(i-n\mod p\times\ceil*{n\div p})\div\floor*{n\mod p}}$\\
+Note, that above solutions is on two lines, it was tested as such in R (see script code below). As R by default uses type conversion to float if needed, a number of floor operators could be dropped when implementing the solution in C that does not type convert/cast automatically.
+\begin{verbatim}
+# R Script to calculate block distribution
+# i = current task instance
+# n = problem/task size
+# p = number of processes
+# returns =  block number
+blockdistro<-function(i, n, p){
+  result <- ifelse( n%%p == 0, 
+                    floor(i/p), 
+                    ifelse(i < n%%p * ceiling(n/p),
+                           floor(i/ceiling(n/p)), 
+                           n%%p + floor((i- n%%p * ceiling(n/p))/floor(n%%p))))
+  return(result)
+}
+\end{verbatim}
 
 \subsection*{Cyclic distribution}
 Cyclic distribution is described by $b = i\mod p$ with $b$ as block number $i$ as index of $n$ and $p$ as number of processes. 
@@ -89,7 +104,7 @@ Cyclic distribution is described by $b = i\mod p$ with $b$ as block number $i$ a
 Block cyclic distribution can be expressed as $b = \floor*{i \div l} mod p$ where $b$ is block index, $i$ index of $n$, $l$ block length and $p$ number of processes.
 
 \section{3.8 - Tree-structured algorithms for scatter and gather}
-The diagram for tree-structured scatter is shown in figure \ref{fig:scatter}. The arrows show the communication events which for the present case of \verb+comm_sz = 8+ and \verb+n = 16+ is 7. This is also true for the tree-structured gather shown in figure \ref{fig:gather}.
+The diagram for tree-structured scatter is shown in figure \ref{fig:scatter}. The arrows show the communication events which for the present case of \verb+comm_sz = 8+ and \verb+n = 16+ are \verb+7+. This is also true for the tree-structured gather shown in figure \ref{fig:gather}.
 \begin{figure}
   \centering
   \includegraphics[width=1\textwidth]{scatter.png}
@@ -105,12 +120,12 @@ The diagram for tree-structured scatter is shown in figure \ref{fig:scatter}. Th
 \end{figure}
 
 \section{3.9 - Vector scaling and dot product}
-The Source code for the vector scaling and dot product MPI program can be found in appendix \ref{app:source39}.
+The Source code for the vector scaling and dot product MPI program can be found in appendix \ref{app:source39}. It was assumed that the program returns two individual results, from the vector scaling and from the dot product. 
 
 
 \section{3.11 - Prefix sums}
 \subsection*{Serial Algorithm}
-Assume vector $x$ of length $n$ and prefix sums vector $y$ to be calculated.
+Below follows a serial algorithm to calculate a prefix sums vector $y$ from vector $x$ of length $n$.
 \begin{verbatim}
 y_0 = x_0
 for (i = 1, i < n , i++)
@@ -118,7 +133,7 @@ for (i = 1, i < n , i++)
 \end{verbatim}
 
 \subsection*{Parallel Algorithm}
-After Blelloch \cite{blelloch1990}, parallel prefix-sum, or `Sum Scan Algorithm' can be calculated in two steps, the `Up-sweep' (Reduce) and `Down-sweep'. Below, pseudo code from Valdez \cite{valdez2012} where $x$ is the input data, $n$ the size of the input and $d$ the number of processeors. If $n \neq 2^{k}$, then $n$ has to be extended with \textit{zero's}. The `Up-Sweep':
+After Blelloch \cite{blelloch1990}, parallel prefix-sum, or `Sum Scan Algorithm' can be calculated in two steps, the `Up-sweep' (Reduce) and `Down-sweep'. Below follows pseudo code from Valdez \cite{valdez2012} where $x$ is the input data, $n$ the size of the input and $d$ the number of processeors. If $n \neq 2^{k}$, then $n$ has to be extended with \textit{zero's}. The `Up-Sweep':
 \begin{verbatim}
 for d = 0 to log2(n) – 1 do 
       for all k = 0 to n – 1 by 2^(d+1) in parallel do 
@@ -137,13 +152,13 @@ x[n – 1] = 0
 \end{verbatim}
 
 \subsection*{Minimum Communication}
-An algorithm that uses for the prefix-sum of length $n = 2^k$ only $k$ communication steps can be derived from the communication model in a hypercube as shown in figure \ref{fig:hypercube}.
+An algorithm that uses for the prefix-sum of length $n = 2^k$ only $k$ communication steps can be derived from the communication model in a hypercube as shown in figure \ref{fig:hypercube}. It can be seen that in the shown hypercube of rank 3, 3 concerted communication events are sufficient to distribute the data on every node to every node in the hypercube. This is generally true for every hypercube.
 
 \begin{figure}
 
   \centering
     \includegraphics[width=1\textwidth]{hypercube.png}
-    \caption{\textit{This figure shows the calculation of prefix sums with minimal communication phases. The figure is take from \cite[chap 4.3]{grama2003}}}
+    \caption{\textit{This figure shows the calculation of prefix sums with minimal communication phases. The figure is taken from \cite[chap 4.3]{grama2003}}}
     \label{fig:hypercube}
 \end{figure}
 
@@ -167,11 +182,11 @@ procedure PREFIX_SUMS_HCUBE(my_id, my number, d, result)
 
 
 \subsection*{MPI Program using MPI\_Scan}
-A minimal working example using MPI\_Scan was implemented. The source code can be found in appendix \ref{app:source311}. An array of random numbers are generated on each proces. Then the prefix sums are collected onto process zero. The prefix sums of the arrays are collected index wise. Arrays or length n and p processes will result in a n $\times$ p prefix sum array.  
+A minimal working example using MPI\_Scan was implemented. The source code can be found in appendix \ref{app:source311}. An array of random numbers are generated on each proces. Then the prefix sums are collected onto process zero. The prefix sums of the arrays are collected index wise. Arrays of length $n$ and $p$ processes will result in an $n \times p$ prefix sum array.  
 
 
 \section{3.13 - Generalization of vector scaling and dot product}
-An MPI program for `Vector Scaling and Dot Product' using `MPI\_Scatterv'/`MPI\_Gatherv' was written according to the specifications. The source code can be found in appendix \ref{app:source313}.
+An MPI program for `Vector Scaling and Dot Product' using `MPI\_Scatterv'/`MPI\_Gatherv' was written according to the specifications. The source code can be found in appendix \ref{app:source313}. The functions `MPI\_Scatterv' and `MPI\_Gatherv' allow spreading and collecting of variable number items. The start of each data object is indicated by the `displacement' vector which is here calculated ahead according to a general case block distribution.
 
 \section{3.16 - Diagram for a butterfly implementation of allgather}
 Figure \ref{fig:allgather} shows an diagram for an \textit{allgather} implementation using \textit{butterfly} communication. The exmples shows the communication steps for 8 processes and a data vector length of 16.  
@@ -185,16 +200,16 @@ Figure \ref{fig:allgather} shows an diagram for an \textit{allgather} implementa
 
 
 \section{3.18 - Derived data types}
-Here \verb+MPI\_Type\_vector+ was used to implement a derived data type to represent a block cyclic data distribution. The current implementation assumes that the data is even divisible by blocksize $\times$ processes. This allows to use only one data type definition for the full length block cyclic structe of one process. The source code can be found in appendix \ref{app:source318}
+Here \verb+MPI_Type_vector+ was used to implement a derived data type representing a block cyclic data distribution. The current implementation assumes that the data is even divisible by blocksize $\times$ processes. This allows to use only one data type definition for the full length block cyclic structure that fits more over every process rank. The source code can be found in appendix \ref{app:source318}. For a more general case that can handle incomplete last blocks, \verb+MPI_Type_Vector+ would have to be included in the send/receive loop and be defined individually for every process.
 
 \section{3.20 - Pack and unpack}
 The MPI functions MPI\_Pack and MPI\_Unpack were used transfer complex datastructures. As example, a new \textit{Get\_input} function for the `trapezoidal sum' program was written that transfers the data from process 0 to all processes. The source code of the modified \textit{Get\_input} function can be found in appendix \ref{app:source320}.
 
 \section{3.21 - Matrix-vector multiplication}
-The `Matrix-vector multiplication' program from the course book was run on the HPC2N \textit{Abisko} cluster for benchmarking and comparison to the values in the course book. Herefore the source \textit{mpi\_mat\_vect\_time.c} provided from the coursebooks homepage was compiled with MPI-gcc compiler on the Abisko cluster. Problemsize and process number were chosen accoring to the example in the course book.
+The `Matrix-vector multiplication' program from the course book was run on the HPC2N \textit{Abisko} cluster for benchmarking and comparison to the values in the course book. Herefore the source \textit{mpi\_mat\_vect\_time.c} provided from the coursebooks homepage was compiled with the \textit{openmpi/gcc} compiler on the `Abisko' cluster. Problemsize and process number were chosen according to the example in the course book.
 
 \subsection{Speed comparison}
-The absolute run-times values differ significantly from the benchmarked system in the book, see \cite[p. 123]{pacheco2011} and table \ref{tab:runtimes}. The bechmarking was run on the `abisko' cluster with the setting to run one process per node. For such a small program, this was performance wise probably not the most optimal choice: It can be seen in table \ref{tab:runtimes} that all runtimes for 16 processes are longer than those for respective problem size and fewer processes. Most likely, this is due to the higher communication overhead.  
+The absolute run-times values differ significantly from the benchmarked system in the book, see \cite[p. 123]{pacheco2011} and table \ref{tab:runtimes}. The bechmarking was run on the `abisko' cluster with the setting `one process per node'. For such a small program, this was performance wise probably not an optimal choice: It can be seen in table \ref{tab:runtimes} that all runtimes for 16 processes are longer than those for respective problem sizes and fewer processes. Most likely, this is due to a higher communication overhead needed when using nodes instead of individual processors/cores located at the same node.  
 \begin{table}[]
 \centering
 \caption{\textit{Median runtimes for the Matrix-Vector Multiplication. The program was run on the HPC2N `abisko' cluster. Processes were assigned to individual nodes.}}
@@ -211,20 +226,23 @@ The absolute run-times values differ significantly from the benchmarked system i
 \end{table}
 
 
-\subsection{Observed variabilities}
-Variability was assessed using boxplots, see figure \ref{fig:boxplot}.
+\subsection{Observed variabilitiess}
+Boxplots were used to investigate variability for either fixed number of processes and inreasing problem size (left plates in figure \ref{fig:boxplot}) or for fixed number of problem size and increasing process number (right plates in figure \ref{fig:boxplot}). Several observations can be made: In the uppermost subfigure to the right (fixed problem size 1024), for 2 and more processes, a single outlier value, far above the other values occurs. This could be the first calculation for each batch run on the HPC2N cluster. It was mentioned during lecture that this is a common phenomena. However it seems a bit suspicious that the outlier magnitude seems to increase so perfect linear. Anyhow, for the boxplots on the left, these data points were removed to allow a more suitable axis scale. For fixed numbers of processors, the left plates in figure \ref{fig:boxplot}, a common theme seems to be an increasing variability of the runtimes when problem size increases. This is at least true for $p = (1,2)$. For $p = (4, 8)$ there seems to happen an irregularity at the probelm size $8192$ when variability suddently gets lower. At $p = 16$ (lowest left plate in figure \ref{fig:boxplot}), the variability does not change, most likely because the runtime is dominated by the constant `communication overhead'. It is moderate high for all problem sizes. 
+
+The right series of boxplots in figure \ref{fig:boxplot} shows a somewhat more regular behaviour of the variability at various fixed problem sizes. There seems to be a local minima of variability in each of the plots. Variabiltiy is initially moderate high for small numbers of processes, decreases to a minima at 4 processes and increases then again for higher numbers of processes  ($p = (8, 16)$). On the first thought this observation seems reasonable: A process that takes longer time to finish is probably more prone to show larger variability in absolut values. However, it seems that the increase of variability at higher process numbers is atypical here, due to using one node per process. Most likely, the variabily for 16 proceses would also change when problem size would be increased to such at level that run time is dominated by the actual calculation and not the communication overhead.
+
 \begin{figure}
   \centering
-    \includegraphics[width=1\textwidth]{boxplot.png}
-    \caption{\textit{This figure shows boxplot of runtimes in relation to number of processes and problem size.}}
+    \includegraphics[width=1\textwidth]{test_box.png}
+    \caption{\textit{This figure shows series of runtime boxplots at fixed process number (written on top of each plate) and increasing problem size (left plates) or fixed problem size (writtn on top of each plate) and increasing process number (right plates).}}
     \label{fig:boxplot}
 \end{figure}
 
 
 
-\subsection{Cluster around Minmum, mean, median}
+\subsection{Cluster around Minmum, Mean, Median}
 
-For the clustering of minumum, mean and median, plot showing the timings normalized to their respective largest value were plotted. In each plot series, mean and median were also shown (table \ref{fig:spread}).
+For the clustering of minumum, mean and median, plot showing the timings normalized to their respective largest value were constructed. In each plot series, mean and median were drawn (Figure \ref{fig:spread}). This summary plot shows basically the same information as the boxplots in composite figure \ref{fig:boxplot}. However, as all data is conensed in one figure several values are more easy to compare, namely, mimima, mean and median. It can be seen that the median is always lower than mean values. Further, it is obvious that the datapoints do not make up a normal balanced distribution. Both average measures are skewed to lower run times. This makes sense as there is theoretically a fastest time the problem can be solved with the given hardware while the number of concrrent `disturbing actions' happening on the system can be said to be unlimited.    
 
 \begin{figure}
   \centering
@@ -235,9 +253,9 @@ For the clustering of minumum, mean and median, plot showing the timings normali
 
 
 \section{3.22 - Timing the trapezoidal rule}
-The problem size should be select in a way that the runtimes occour in a regime that is measurable with the given precision of the timing functionality. Further, it is favourable to have a series of multiples i.e the double, the quadruple etc. Here it was chose to use the series 65536, 131072, 262144, 524288, 1048576 as problem size n for the number of trapezoids.
+The problem size should be selected in a way that the runtimes occur in a measurable regime with the given precision of the timing functions. Further, it is favourable to have a series of multiples i.e the double, the quadruple etc. Here it was chosen to use the series $n = (65536, 131072, 262144, 524288, 1048576)$ as problem sizes for the number of trapezoids.
 
-Here, the parameters for the batch runs on HPC2N's `abisko' were chose to assign one processor for each process instead of a whole node for each process. This had certainly a positive effect on lowering the communication overhead for higher number of processes. 
+The parameters for the batch runs on HPC2N's `abisko' were chosen to assign one processor/core for each process instead of a whole node. This had certainly a positive effect on lowering the communication overhead for higher number of processes. 
 
 \begin{table}[]
 \centering
@@ -254,7 +272,7 @@ Here, the parameters for the batch runs on HPC2N's `abisko' were chose to assign
 \end{tabular}
 \end{table}
 
-In most cases, median (table \ref{tab:median_trap}) and mean values (\ref{tab:mean_trap}) were just a few digits apart, with the median always being the lower. However, in some cases the sensitivity of the mean towards outliers can be see. For example for the mean time of $p = 16$ ane $n = 65536$ where the mean is significanly off from the media value. 
+In most cases, median (table \ref{tab:median_trap}) and mean values (\ref{tab:mean_trap}) were just a few digits apart, with the median always being the lower. However, in some cases the sensitivity of the mean towards outliers can be seen. For example the mean time of $p = 16$ ane $n = 65536$ where the mean is significanly off from the median value. 
 
 \begin{table}[]
 \centering
@@ -320,7 +338,7 @@ How does minima time compares to median.
 \end{tabular}
 \end{table}
 
-The benchmark of the trapezoidal rule algorithm resulted for low number of process values in improbable speedup and efficiency values (too good). However, the serial algorith was run on a normal machine that could be slower than the individual dedicated HPC2N machines. At a intermediate number of processes the algorithm has an almost linear speedup and respevtive efficiencies. At larger numbers of processes, the communication overhead degrades the performance a bit. However, the tested larger problem sizes could still make up for it. The algorithm is certainly weakly scalable, in some domains even strongly scalable.  
+The benchmark of the trapezoidal rule algorithm resulted for low number of processes in, according to the theory, impossible speedup and efficiency values (too good). However, it should be considered that the serial algorithm was run on a normal machine that could be slower than the individual dedicated HPC2N cores. At a intermediate number of processes the algorithm has an almost linear speedup and respevtive efficiencies. At larger numbers of processes, the communication overhead degrades the performance a bit. However, the tested larger problem sizes could still make up for it. The algorithm is certainly weakly scalable, in some domains even strongly scalable.  
 
 \section{3.27 - Speedup and efficienciy of odd-even sort}
 First it should be noted that the comparison between serial and parallel timings is based on different algorithms. For serial timings, `quick sort' was used and for the parallel `odd-even' sort. Both algorithms have a worst case performance of $O(n^{2})$ and a best-case performance of $O(n)$. Average performance of quick sort is $O(n log n$ while odd-even sort, when ignoring the communication overhead, shuould effectively perforam at $O(n)$ \cite{hanke_kth}. 
@@ -353,11 +371,9 @@ First it should be noted that the comparison between serial and parallel timings
 \end{tabular}
 \end{table}
 
-This observation fits well with the calculated speedups \ref{tab:speedups} and efficiencies \ref{tab:efficiencies}: At low number of processes, the parallel implementation exceeds even the theoretical ideal of linear speedups (2 processes, speedups: 2.05, 2.09, 2.05, 2.02, 2.09) and correspondingly also the efficiencies (1.02 - 1.05). However, with increasing number of processes, the overhead for communication increases hence, both speedups and efficiencies degrade somewhat. From a theoretical point of view, the communication overhead at a certain number of processes is a constant, hence it should `fall away' in the big O notation for big enough problem size. It can be seen that both speedups and efficiencies increase again at high number of processes for the largest problem sizes.
+This observation fits well with the calculated speedups \ref{tab:speedups} and efficiencies \ref{tab:efficiencies}: At low number of processes, the parallel implementation exceeds even the theoretical ideal of linear speedups (2 processes, speedups: 2.05, 2.09, 2.05, 2.02, 2.09) and correspondingly also the efficiencies (1.02 - 1.05). However, with increasing number of processes, the overhead for communication increases hence, both speedups and efficiencies degrade somewhat. From a theoretical point of view, the communication overhead at a certain number of processes is a constant, hence it should `fall away' in the big O notation for big enough problem sizes. It can be seen that both speedups and efficiencies increase again at high number of processes for the largest problem sizes.
 
-Hence, for low number of processes odd-even sort is strongly scalable. For larger numbers of processes, the performance degrades somewhat but weakly scalable sounds here almost as an underestimation. However, by definition, it is weakly scalable. 
- 
-
+Hence, for low number of processes odd-even sort is strongly scalable. For larger numbers of processes, the performance degrades somewhat but weakly scalable sounds here almost as an underestimation. But by definition, it is weakly scalable. 
 
 \addcontentsline{toc}{section}{\refname}
 \bibliography{references}
@@ -474,8 +490,10 @@ int main(int argc, char *argv[]) {
   local_vec2 = (int*) malloc(local_n * sizeof(int));
   
   MPI_Bcast(&scalar, 1, MPI_INT, 0, MPI_COMM_WORLD);
-  MPI_Scatter(vector1, local_n, MPI_INT, local_vec1, local_n, MPI_INT, 0, MPI_COMM_WORLD);
-  MPI_Scatter(vector2, local_n, MPI_INT, local_vec2, local_n, MPI_INT, 0, MPI_COMM_WORLD);
+  MPI_Scatter(vector1, local_n, MPI_INT, local_vec1, 
+                local_n, MPI_INT, 0, MPI_COMM_WORLD);
+  MPI_Scatter(vector2, local_n, MPI_INT, local_vec2, 
+                local_n, MPI_INT, 0, MPI_COMM_WORLD);
  
   /* Calculations */
   /* Calculate Dot Product */
@@ -494,8 +512,10 @@ int main(int argc, char *argv[]) {
   } 
  
   /* Collect Data */
-  MPI_Gather(local_vec1, local_n, MPI_INT, vector1, local_n, MPI_INT, 0, MPI_COMM_WORLD);
-  MPI_Reduce(&local_dotp_sum, &result_dot, 1, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);
+  MPI_Gather(local_vec1, local_n, MPI_INT, vector1, 
+               local_n, MPI_INT, 0, MPI_COMM_WORLD);
+  MPI_Reduce(&local_dotp_sum, &result_dot, 1, MPI_INT, 
+               MPI_SUM, 0, MPI_COMM_WORLD);
 
   /* Results */
   if(my_rank == 0){
@@ -656,8 +676,10 @@ int main(int argc, char *argv[]) {
   local_vec2 = (int*) malloc(local_n * sizeof(int));
   
   MPI_Bcast(&scalar, 1, MPI_INT, 0, MPI_COMM_WORLD);
-  MPI_Scatterv(vector1, sendcounts, displs, MPI_INT, local_vec1, sendcounts[my_rank], MPI_INT, 0, MPI_COMM_WORLD);
-  MPI_Scatterv(vector2, sendcounts, displs, MPI_INT, local_vec2, sendcounts[my_rank], MPI_INT, 0, MPI_COMM_WORLD);
+  MPI_Scatterv(vector1, sendcounts, displs, MPI_INT, local_vec1, 
+                 sendcounts[my_rank], MPI_INT, 0, MPI_COMM_WORLD);
+  MPI_Scatterv(vector2, sendcounts, displs, MPI_INT, local_vec2, 
+                 sendcounts[my_rank], MPI_INT, 0, MPI_COMM_WORLD);
 
   
   /* Calculations */
@@ -677,7 +699,8 @@ int main(int argc, char *argv[]) {
   } 
  
   /* Collect Data */
-  MPI_Gatherv(local_vec1, sendcounts[my_rank], MPI_INT, vector1, sendcounts, displs, MPI_INT, 0, MPI_COMM_WORLD); 
+  MPI_Gatherv(local_vec1, sendcounts[my_rank], MPI_INT, vector1, 
+                sendcounts, displs, MPI_INT, 0, MPI_COMM_WORLD); 
   MPI_Reduce(&local_dotp_sum, &result_dot, 1, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);
 
   /* Results */
@@ -714,9 +737,11 @@ int main(int argc, char *argv[]) {
 #include <stdlib.h>
 
 
-int Read_vector(int block_length, double* vector, double** slice,  int vector_length, int rank, int comm_sz);
+int Read_vector(int block_length, double* vector, 
+                  double** slice,  int vector_length, int rank, int comm_sz);
 
-int Print_vector(int block_length, double** slice, double* vector, int vector_length, int rank, int comm_sz);
+int Print_vector(int block_length, double** slice, 
+                   double* vector, int vector_length, int rank, int comm_sz);
 
 int main(void) {
   int my_rank, comm_sz;
@@ -746,7 +771,8 @@ int main(void) {
 }
 
 
-int Read_vector(int block_length, double* vector, double** slice, int vector_length, int my_rank, int comm_sz){
+int Read_vector(int block_length, double* vector, double** slice, 
+                  int vector_length, int my_rank, int comm_sz){
 
   /* calc block cyclic distro */
   int no_cycles = vector_length / (block_length * comm_sz);
@@ -779,7 +805,8 @@ int Read_vector(int block_length, double* vector, double** slice, int vector_len
 }
 
 
-int Print_vector(int block_length, double** slice, double* vector, int vector_length, int my_rank, int comm_sz){
+int Print_vector(int block_length, double** slice, double* vector, 
+                   int vector_length, int my_rank, int comm_sz){
 
   /* calc block cyclic distro */
   int no_cycles = vector_length / (block_length * comm_sz);

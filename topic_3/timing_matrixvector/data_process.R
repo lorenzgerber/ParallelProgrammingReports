@@ -88,6 +88,20 @@ boxplot(data[,3]~data[,1], ylim=c(0,0.0002), xlab='p Processes', ylab='runtime i
 #Boxplot runtimes in relation to problem size
 boxplot(data[,3]~data[,2], ylim=c(0,0.0002), xlab='n Problem Size', ylab='runtime in milliseconds')
 
+png("test_box.png", width=600, height = 1000)
+par(mfcol=c(5,2))
+par(mai=c(1,1,1,1))
+par(mar=c(2,2,2,2))
+for(i in c(1,2,4,8,16)){
+    boxplot(data[which(data[,1]==i)[-3],3]~data[which(data[,1]==i)[-3],2], main = i)
+}
+
+for(j in c(1024, 2048, 4096, 8192, 16384)){
+  boxplot(data[which(data[,2]==j),3]~data[which(data[,2]==j),1], main = j)
+}
+dev.off()
+
+
 
 range_value<-range(data[which(data[,1] == 2 & data[,2] == 4096),3])
 median(data[which(data[,1] == 2 & data[,2] == 4096),3])*100/range_value[2]
@@ -110,5 +124,19 @@ for(i in c(1, 2, 4, 8, 16)){
     points(xvalues[xpos], median(data[which(data[,1] == i & data[,2] == j), 3])*100/range_value[2], pch=2, col = "blue")
     xpos<-xpos+1
   }
+}
+
+# testing function for block distribution in 3.6
+# i = current task instance
+# n = problem/task size
+# p = number of processes
+# returns =  block number
+blockdistro<-function(i, n, p){
+  result <- ifelse( n%%p == 0, 
+                    floor(i/p), 
+                    ifelse(i < n%%p * ceiling(n/p),
+                           floor(i/ceiling(n/p)), 
+                           n%%p + floor((i- n%%p * ceiling(n/p))/floor(n%%p))))
+  return(result)
 }
 
