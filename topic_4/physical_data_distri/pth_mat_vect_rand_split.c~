@@ -1,114 +1,38 @@
-\documentclass[a4paper,11pt,twoside]{article}
-%\documentclass[a4paper,11pt,twoside,se]{article}
+/* File:     
+ *     pth_mat_vect_rand_split.c 
+ *
+ * Purpose:  
+ *     Computes a parallel matrix-vector product.  Matrix
+ *     is distributed by block rows.  Vectors are distributed by 
+ *     blocks.  This version uses a random number generator to
+ *     generate A and x.  It also makes some small changes to
+ *     the multiplication.  These are intended to improve
+ *     performance and explicitly use temporary variables.
+ *
+ * Input:
+ *     none
+ *
+ * Output:
+ *     y: the product vector
+ *     Elapsed time for the computation
+ *
+ * Compile:  
+ *    gcc -g -Wall -o pth_mat_vect_rand pth_mat_vect_rand.c -lpthread
+ * Usage:
+ *     pth_mat_vect <thread_count> <m> <n>
+ *
+ * Notes:  
+ *     1.  Local storage for A, x, y is dynamically allocated.
+ *     2.  Number of threads (thread_count) should evenly divide
+ *         m.  The program doesn't check for this.
+ *     3.  We use a 1-dimensional array for A and compute subscripts
+ *         using the formula A[i][j] = A[i*n + j]
+ *     4.  Distribution of A, x, and y is logical:  all three are 
+ *         globally shared.
+ *     5.  Compile with -DDEBUG for information on generated data
+ *         and product.
+ */
 
-\usepackage{UmUStudentReport}
-\usepackage{verbatim}   % Multi-line comments using \begin{comment}
-\usepackage{courier}    % Nicer fonts are used. (not necessary)
-\usepackage{pslatex}    % Also nicer fonts. (not necessary)
-\usepackage[pdftex]{graphicx}   % allows including pdf figures
-\usepackage{listings}
-\usepackage{pgf-umlcd}
-\usepackage{blindtext}
-\usepackage{enumitem}
-%\usepackage{lmodern}   % Optional fonts. (not necessary)
-%\usepackage{tabularx}
-%\usepackage{microtype} % Provides some typographic improvements over default settings
-%\usepackage{placeins}  % For aligning images with \FloatBarrier
-%\usepackage{booktabs}  % For nice-looking tables
-%\usepackage{titlesec}  % More granular control of sections.
-
-% DOCUMENT INFO
-% =============
-\department{Department of Computing Science}
-\coursename{Parallel Programming 7.5 p}
-\coursecode{5DV152}
-\title{Exercises, Chapter/Topic 4}
-\author{Lorenz Gerber ({\tt{dv15lgr@cs.umu.se}} {\tt{lozger03@student.umu.se}})}
-\date{2017-02-23}
-%\revisiondate{2016-01-18}
-\instructor{Lars Karlsson / Mikael Ränner}
-
-
-% DOCUMENT SETTINGS
-% =================
-\bibliographystyle{plain}
-%\bibliographystyle{ieee}
-\pagestyle{fancy}
-\raggedbottom
-\setcounter{secnumdepth}{2}
-\setcounter{tocdepth}{2}
-%\graphicspath{{images/}}   %Path for images
-
-\usepackage{float}
-\floatstyle{ruled}
-\newfloat{listing}{thp}{lop}
-\floatname{listing}{Listing}
-
-
-
-% DEFINES
-% =======
-%\newcommand{\mycommand}{<latex code>}
-
-% DOCUMENT
-% ========
-\begin{document}
-\lstset{language=C}
-\maketitle
-\thispagestyle{empty}
-\newpage
-\tableofcontents
-\thispagestyle{empty}
-\newpage
-
-\clearpage
-\pagenumbering{arabic}
-
-\section{Introduction}
-This report is part of the mandatory coursework. It describes the solutions for several chosen exercises from the course book \cite{pacheco2011}.
-\section{4.1 - Generalization of matrix-vector multiplication}
-If we keep the same scheme of parallelization as mentioned in the book (outer for...loop), generalzation can be implemented rather easy, bascially in the same way as already shown in exercise 1.1:
-
-\begin{verbatim}                                                                                             
-my_first_i = k * m / p + ( k < m mod p ? k : m mod p )                                                       
-my_last_i = (k + 1) * m / p + (k + 1 < m mod p ? k + 1 : m mod p)  
-\end{verbatim}
-
-It is not useful to parallelize into n as one thread needs to process as this would create a mutex for acces to shared variables. 
-
-\section{4.2 - Physical data distribution}
-The source code for this exercise can be found in appendix \ref{app:source42}. Timing:
-
-
-\section{4.8 - Deadlock}
-a) Both thread wait for the other to release the lock.
-b) busy waiting with two flag variables would create the same situation as two mutex locks.
-c) If two semaphores are used, they act more or less in the same way as mutex locks.
-The main problem in this program is that it tries to acquire locks from within critical sections, interleaved.
-
-\section{4.11 - Linked list troubles}
-
-\section{4.12 - Linked list insert and delete with read-write lock}
-
-\section{4.17 - False sharing}
-
-\section{A4.1 - Histogram}
-
-\section{A4.3 - Trapezoidal rule}
-
-\section{A4.4 - Fork/join overhead}
-
-\section{A4.5 - Task queue} 
-
-
-
-\addcontentsline{toc}{section}{\refname}
-\bibliography{references}
-
-\appendix
-
-\section{C Source Code for Exercise 4.2}{\label{app:source4.2}
-\begin{verbatim}
 #include <stdio.h>
 #include <stdlib.h>
 #include <pthread.h>
@@ -165,11 +89,23 @@ int main(int argc, char* argv[]) {
 }  /* main */
 
 
+/*------------------------------------------------------------------
+ * Function:  Usage
+ * Purpose:   print a message showing what the command line should
+ *            be, and terminate
+ * In arg :   prog_name
+ */
 void Usage (char* prog_name) {
    fprintf(stderr, "usage: %s <thread_count> <m> <n>\n", prog_name);
    exit(0);
 }  /* Usage */
 
+/*------------------------------------------------------------------
+ * Function:    Read_matrix
+ * Purpose:     Read in the matrix
+ * In args:     prompt, m, n
+ * Out arg:     A
+ */
 void Read_matrix(char* prompt, double A[], int m, int n) {
    int             i, j;
 
@@ -179,7 +115,13 @@ void Read_matrix(char* prompt, double A[], int m, int n) {
          scanf("%lf", &A[i*n+j]);
 }  /* Read_matrix */
 
-
+/*------------------------------------------------------------------
+ * Function: Gen_matrix
+ * Purpose:  Use the random number generator random to generate
+ *    the entries in A
+ * In args:  m, n
+ * Out arg:  A
+ */
 void Gen_matrix(double A[], int m, int n) {
    int i, j;
    for (i = 0; i < m; i++)
@@ -187,22 +129,41 @@ void Gen_matrix(double A[], int m, int n) {
          A[i*n+j] = random()/((double) RAND_MAX);
 }  /* Gen_matrix */
 
-
+/*------------------------------------------------------------------
+ * Function: Gen_vector
+ * Purpose:  Use the random number generator random to generate
+ *    the entries in x
+ * In arg:   n
+ * Out arg:  A
+ */
 void Gen_vector(double x[], int n) {
    int i;
    for (i = 0; i < n; i++)
       x[i] = random()/((double) RAND_MAX);
-}
+}  /* Gen_vector */
 
+/*------------------------------------------------------------------
+ * Function:        Read_vector
+ * Purpose:         Read in the vector x
+ * In arg:          prompt, n
+ * Out arg:         x
+ */
 void Read_vector(char* prompt, double x[], int n) {
    int   i;
 
    printf("%s\n", prompt);
    for (i = 0; i < n; i++) 
       scanf("%lf", &x[i]);
-}
+}  /* Read_vector */
 
 
+/*------------------------------------------------------------------
+ * Function:       Pth_mat_vect
+ * Purpose:        Multiply an mxn matrix by an nx1 column vector
+ * In arg:         rank
+ * Global in vars: A, x, m, n, thread_count
+ * Global out var: y
+ */
 void *Pth_mat_vect(void* rank) {
   double* A;
   double* x;
@@ -216,6 +177,12 @@ void *Pth_mat_vect(void* rank) {
   register int sub = my_first_row*n;
   double start, finish;
   double temp;
+
+
+  // Allocate memory for local matrix and vector
+  A = malloc((m/thread_count)*n*sizeof(double));
+  x = malloc(n*sizeof(double));
+  y = malloc((m/thread_count)*sizeof(double));
   
 # ifdef DEBUG
   printf("Thread %ld > local_m = %d, sub = %d\n",
@@ -228,13 +195,10 @@ void *Pth_mat_vect(void* rank) {
     pthread_cond_wait(&cond_var_input, &mutex_input);
   }
 
-  A = malloc(m/thread_count*n*sizeof(double));
-  x = malloc(n*sizeof(double));
-  y = malloc(m/thread_count*sizeof(double));
 
-  Gen_matrix(A, local_m, n);
+  Gen_matrix(A, m, n);
 # ifdef DEBUG
-  Print_matrix("We generated", A, local_m, n); 
+  Print_matrix("We generated", A, m, n); 
 # endif
 
   Gen_vector(x, n);
@@ -275,14 +239,19 @@ void *Pth_mat_vect(void* rank) {
   pthread_mutex_unlock(&mutex_input);
 
  
-  free(A);
-  free(x);
-  free(y);
+  //free(A);
+  //free(x);
+  //free(y);
 
   return NULL;
-}
+} /* Pth_mat_vect */
 
 
+/*------------------------------------------------------------------
+ * Function:    Print_matrix
+ * Purpose:     Print the matrix
+ * In args:     title, A, m, n
+ */
 void Print_matrix( char* title, double A[], int m, int n) {
    int   i, j;
 
@@ -292,9 +261,14 @@ void Print_matrix( char* title, double A[], int m, int n) {
          printf("%6.3f ", A[i*n + j]);
       printf("\n");
    }
-}
+}  /* Print_matrix */
 
 
+/*------------------------------------------------------------------
+ * Function:    Print_vector
+ * Purpose:     Print a vector
+ * In args:     title, y, m
+ */
 void Print_vector(char* title, double y[], double m) {
    int   i;
 
@@ -302,10 +276,4 @@ void Print_vector(char* title, double y[], double m) {
    for (i = 0; i < m; i++)
       printf("%6.3f ", y[i]);
    printf("\n");
-}
-
-\end{verbatim}
-
-
-
-\end{document}
+}  /* Print_vector */
