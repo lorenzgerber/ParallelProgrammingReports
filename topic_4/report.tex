@@ -66,6 +66,36 @@
 
 \section{Introduction}
 This report is part of the mandatory coursework. It describes the solutions for several chosen exercises from the course book \cite{pacheco2011}.
+\section{4.1 - Generalization of matrix-vector multiplication}
+If we keep the same scheme of parallelization as mentioned in the book (outer for...loop), generalzation can be implemented rather easy, bascially in the same way as already shown in exercise 1.1:
+
+\begin{verbatim}                                                                                             
+my_first_i = k * m / p + ( k < m mod p ? k : m mod p )                                                       
+my_last_i = (k + 1) * m / p + (k + 1 < m mod p ? k + 1 : m mod p)  
+\end{verbatim}
+
+It is not useful to parallelize into n as one thread needs to process as this would create a mutex for acces to shared variables. 
+
+\section{4.2 - Physical data distribution}
+
+
+\section{4.8 - Deadlock}
+
+\section{4.11 - Linked list troubles}
+
+\section{4.12 - Linked list insert and delete with read-write lock}
+
+\section{4.17 - False sharing}
+
+\section{A4.1 - Histogram}
+
+\section{A4.3 - Trapezoidal rule}
+
+\section{A4.4 - Fork/join overhead}
+
+\section{A4.5 - Task queue} 
+
+
 
 \addcontentsline{toc}{section}{\refname}
 \bibliography{references}

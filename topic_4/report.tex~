@@ -65,7 +65,7 @@
 \pagenumbering{arabic}
 
 \section{Introduction}
-This report is part of the mandatory coursework. It describes the solutions for several chosen exercises from the course book.
+This report is part of the mandatory coursework. It describes the solutions for several chosen exercises from the course book \cite{pacheco2011}.
 
 \addcontentsline{toc}{section}{\refname}
 \bibliography{references}
