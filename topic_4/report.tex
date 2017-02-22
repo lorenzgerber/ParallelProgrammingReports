@@ -81,14 +81,44 @@ The source code for this exercise can be found in appendix \ref{app:source42}. T
 
 
 \section{4.8 - Deadlock}
-a) Both thread wait for the other to release the lock.
-b) busy waiting with two flag variables would create the same situation as two mutex locks.
-c) If two semaphores are used, they act more or less in the same way as mutex locks.
-The main problem in this program is that it tries to acquire locks from within critical sections, interleaved.
+\begin{enumerate}[label={\alph*)}]
+\item Both thread wait for the other to release the lock
+\item busy waiting with two flag variables would create the same situation as two mutex locks
+\item if two semaphores are used, they act more or less in the same way as mutex locks
+\end{enumerate}
+  
+The main problem in the mentioned program is that it tries to acquire locks from within critical sections, interleaved.
 
 \section{4.11 - Linked list troubles}
+The linked list implementation from section 4.9.2 of the course book was assumed for this exercise. The situations to be described are shown in figure \ref{fig:llist}.
+
+\begin{figure}
+
+  \centering
+  \includegraphics[width=1\textwidth]{linked_list.png}
+  \caption{\textit{This graph shows the multithreaded linked list situations from a) to e) that are further described in the text.}}
+  \label{fig:llist}
+\end{figure}
+
+
+
+\begin{enumerate}[label={\alph*)}]
+\item Here, first both threads have to find the element to be removed, 5 and 6. They will first probably first redefine the linked list pointer from their \textit{pred\_p} element to point to the next element of the \textit{curr\_p} element instead of the \textit{curr\_p} itself. Here it could happend that the thread that wants to delete element 8 will never arrive at its destined element as the other thread has already redefined the pointer. In the next step The pointer from \textit{curr\_p} will be set to \textit{null} and the actual element free'd. Here again, one problem that could occur is that the thread to delete element 6 will not arrive at his destination because of a \textit{null} pointer. Another obvious problem is that if the thread to delete element 5 will probably already have redifined the pointer from element 2 to element 8, when the other thread will free element 8. Two delete operations will certainly result in either a run time error immediately, or incorrect data structure that probably at a later point in time will lead to a run time error or worse, incorrect results.
+\item If an insert and a delete are conducted on the same element, here element 5, the most obvious problem is that the new element 3 will point to a free'd element. Even if element 5 wouldn't be overwritten in the memory yet, it's pointer will be set to \textit{null} anyway, hence the connection to the next list element is lost. Another problem is that both threads will try to redefine the pointer of element 2. Also this situation will probably result in run-time errors such as segmentation fault. If not immediately then probably at a later access. In a rare case when the program will not crash, it seems most likely that the data structure represented will be the linked list 2, 5 with 3 missing.
+
+\item Here one thread wants to delete element 5 while another thread attempts a member operation on element 5. If thread doing a member operation is earlier, it will succeed in his operation, but in respect to the situation after the delete report a wrong value as element 5 does not exist anymore. In some cases, the thread to delete 5 could already have redefined the pointer in element 2 hence the memeber operation would then probably be executed on list element 8 instead of 5. Altough, note, that this could be the intended action. Basically, it will represent the current situation and the data structure is still sane.
+
+\item When two threads try to insert a new element (3 and 4) at the same place (before element 5), it is obvious that the redefination of pointer from element 2 will happen sequential (or else a segmentation fault will happen already here), hence the linked list will incorporate either element 3 or 4. Probably here the chance is big that the program will not crash but that it will produce wrong results.
+
+  \item An insert and a member operation from two separate threads on the same list element 5, will most likely result in a wrong result from the member operation in respect to the new data structure. However, in most cases the program should not crash. Depending on timing, it could also happen some times that the member operation will be conducted already at on the new element 3. Note that it is not defined what is correct here, a member function reporting element 3 or 5. This could also be seen as a race condition with undetermined behaviour.
+\end{enumerate}
+
+
+
+
 
 \section{4.12 - Linked list insert and delete with read-write lock}
+No, it's not safe. Another thread could also have the read-lock and request the write lock at the same time. Then only one of two threads will initially get the write-lock and be able to modify the list. When the second thread finally get's the write lock, the list is probably already modified from the first write access and the program will crash.
 
 \section{4.17 - False sharing}
 
