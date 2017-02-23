@@ -68,8 +68,10 @@ int main(int argc, char* argv[]) {
    n = strtol(argv[3], NULL, 10);
 
 #  ifdef DEBUG
-   printf("thread_count =  %d, m = %d, n = %d\n", thread_count, m, n);
+   printf("Thread_count =  %d, m = %d, n = %d\n", thread_count, m, n);
 #  endif
+
+   for (int j = 0; j < 100 ; j++){
 
    thread_handles = malloc(thread_count*sizeof(pthread_t));
    A = malloc(m*n*sizeof(double));
@@ -100,6 +102,8 @@ int main(int argc, char* argv[]) {
    free(A);
    free(x);
    free(y);
+   
+   }
 
    return 0;
 }  /* main */
@@ -206,8 +210,7 @@ void *Pth_mat_vect(void* rank) {
       }
    }
    GET_TIME(finish);
-   printf("Thread %ld > Elapsed time = %e seconds\n", 
-      my_rank, finish - start);
+   printf("%e\n", finish - start);
 
    return NULL;
 }  /* Pth_mat_vect */

@@ -41,12 +41,9 @@
 /* Global variables */
 int     thread_count;
 int     m, n;
-int     input_counter = 0;
-int     output_counter = 0;
-pthread_mutex_t mutex_input;
-pthread_mutex_t mutex_output;
-pthread_cond_t cond_var_input;
-pthread_cond_t cond_var_output;
+double* A;
+double* x;
+double* y;
 
 /* Serial functions */
 void Usage(char* prog_name);
@@ -60,31 +57,54 @@ void Print_vector(char* title, double y[], double m);
 /* Parallel function */
 void *Pth_mat_vect(void* rank);
 
-
 /*------------------------------------------------------------------*/
 int main(int argc, char* argv[]) {
-  
-  long       thread;
-  pthread_t* thread_handles;
+   long       thread;
+   pthread_t* thread_handles;
 
-  if (argc != 4) Usage(argv[0]);
-  thread_count = strtol(argv[1], NULL, 10);
-  m = strtol(argv[2], NULL, 10);
-  n = strtol(argv[3], NULL, 10);
+   if (argc != 4) Usage(argv[0]);
+   thread_count = strtol(argv[1], NULL, 10);
+   m = strtol(argv[2], NULL, 10);
+   n = strtol(argv[3], NULL, 10);
 
-# ifdef DEBUG
-  printf("thread_count =  %d, m = %d, n = %d\n", thread_count, m, n);
-# endif
+#  ifdef DEBUG
+   printf("Thread_count =  %d, m = %d, n = %d\n", thread_count, m, n);
+#  endif
 
-  thread_handles = malloc(thread_count*sizeof(pthread_t));
+   for (int j = 0; j < 100 ; j++){
 
-  for (thread = 0; thread < thread_count; thread++)
-     pthread_create(&thread_handles[thread], NULL,
-        Pth_mat_vect, (void*) thread);
+   thread_handles = malloc(thread_count*sizeof(pthread_t));
+   A = malloc(m*n*sizeof(double));
+   x = malloc(n*sizeof(double));
+   y = malloc(m*sizeof(double));
+   
+   Gen_matrix(A, m, n);
+#  ifdef DEBUG
+   Print_matrix("We generated", A, m, n); 
+#  endif
 
-  for (thread = 0; thread < thread_count; thread++)
-     pthread_join(thread_handles[thread], NULL);
-  
+   Gen_vector(x, n);
+#  ifdef DEBUG
+   Print_vector("We generated", x, n); 
+#  endif
+
+   for (thread = 0; thread < thread_count; thread++)
+      pthread_create(&thread_handles[thread], NULL,
+         Pth_mat_vect, (void*) thread);
+
+   for (thread = 0; thread < thread_count; thread++)
+      pthread_join(thread_handles[thread], NULL);
+
+#  ifdef DEBUG
+   Print_vector("The product is", y, m); 
+#  endif
+
+   free(A);
+   free(x);
+   free(y);
+   
+   }
+
    return 0;
 }  /* main */
 
@@ -165,86 +185,35 @@ void Read_vector(char* prompt, double x[], int n) {
  * Global out var: y
  */
 void *Pth_mat_vect(void* rank) {
-  double* A;
-  double* x;
-  double* y;
-  long my_rank = (long) rank;
-  int i;
-  int j; 
-  int local_m = m/thread_count; 
-  int my_first_row = 0; //my_rank*local_m;
-  int my_last_row = m/thread_count; //my_first_row + local_m;
-  register int sub = my_first_row*n;
-  double start, finish;
-  double temp;
+   long my_rank = (long) rank;
+   int i;
+   int j; 
+   int local_m = m/thread_count; 
+   int my_first_row = my_rank*local_m;
+   int my_last_row = my_first_row + local_m;
+   register int sub = my_first_row*n;
+   double start, finish;
+   double temp;
 
+#  ifdef DEBUG
+   printf("Thread %ld > local_m = %d, sub = %d\n",
+         my_rank, local_m, sub);
+#  endif
 
-  // Allocate memory for local matrix and vector
-  A = malloc((m/thread_count)*n*sizeof(double));
-  x = malloc(n*sizeof(double));
-  y = malloc((m/thread_count)*sizeof(double));
-  
-# ifdef DEBUG
-  printf("Thread %ld > local_m = %d, sub = %d\n",
-        my_rank, local_m, sub);
-# endif
-  // scheduling data input
-  pthread_mutex_lock(&mutex_input);
+   GET_TIME(start);
+   for (i = my_first_row; i < my_last_row; i++) {
+      y[i] = 0.0;
+      for (j = 0; j < n; j++) {
+          temp = A[sub++];
+          temp *= x[j];
+          y[i] += temp;
+      }
+   }
+   GET_TIME(finish);
+   printf("T%e\n", finish - start);
 
-  while(input_counter != my_rank){
-    pthread_cond_wait(&cond_var_input, &mutex_input);
-  }
-
-
-  Gen_matrix(A, m, n);
-# ifdef DEBUG
-  Print_matrix("We generated", A, m, n); 
-# endif
-
-  Gen_vector(x, n);
-# ifdef DEBUG
-  Print_vector("We generated", x, n); 
-# endif
-
-
-  input_counter++;
-  pthread_cond_broadcast(&cond_var_input);
-  pthread_mutex_unlock(&mutex_input);
-  
-  GET_TIME(start);
-  for (i = my_first_row; i < my_last_row; i++) {
-     y[i] = 0.0;
-     for (j = 0; j < n; j++) {
-         temp = A[sub++];
-         temp *= x[j];
-         y[i] += temp;
-     }
-  }
-  GET_TIME(finish);
-
-  pthread_mutex_lock(&mutex_output);
- 
-  while(output_counter != my_rank){
-    pthread_cond_wait(&cond_var_output, &mutex_output);
-  }
-  printf("Thread %ld > Elapsed time = %e seconds\n", 
-     my_rank, finish - start);
-
-# ifdef DEBUG
-  Print_vector("The Product is", y, m/thread_count);
-# endif 
-
-  output_counter++;
-  pthread_cond_broadcast(&cond_var_output);
-  pthread_mutex_unlock(&mutex_input);
-
- 
-  //free(A);
-  //free(x);
-  //free(y);
-
-  return NULL;
-} /* Pth_mat_vect */
+   return NULL;
+}  /* Pth_mat_vect */
 
 
 /*------------------------------------------------------------------

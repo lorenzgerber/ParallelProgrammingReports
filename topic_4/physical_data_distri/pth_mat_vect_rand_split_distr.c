@@ -76,6 +76,8 @@ int main(int argc, char* argv[]) {
   printf("thread_count =  %d, m = %d, n = %d\n", thread_count, m, n);
 # endif
 
+  for(int j = 0; j < 100; j++){
+
   thread_handles = malloc(thread_count*sizeof(pthread_t));
 
   for (thread = 0; thread < thread_count; thread++)
@@ -84,6 +86,11 @@ int main(int argc, char* argv[]) {
 
   for (thread = 0; thread < thread_count; thread++)
      pthread_join(thread_handles[thread], NULL);
+
+  input_counter = 0;
+  output_counter = 0;
+
+  }
   
    return 0;
 }  /* main */
@@ -224,8 +231,7 @@ void *Pth_mat_vect(void* rank) {
   while(output_counter != my_rank){
     pthread_cond_wait(&cond_var_output, &mutex_output);
   }
-  printf("Thread %ld > Elapsed time = %e seconds\n", 
-     my_rank, finish - start);
+  printf("%e\n", finish - start);
 
 # ifdef DEBUG
   Print_vector("The Product is", y, m/thread_count);
