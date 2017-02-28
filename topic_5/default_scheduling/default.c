@@ -14,11 +14,20 @@ int main(int argc, char* argv[]){
   int thread_count, iterations, i, j;
   int *assignments;
   int my_rank;
+  int  a[10];
 
   thread_count = strtol(argv[1], NULL, 10);
   iterations = strtol(argv[2], NULL, 10);
 
   assignments = (int*) malloc(iterations * sizeof(int));
+
+
+  a[0] = 0;
+# pragma omp parallel for num_threads(thread_count)
+  for(i = 1; i < 10; i++){
+    a[i] = a[i-1] + i;
+  }
+  
 
   # pragma omp parallel for num_threads(thread_count)
   for(i = 0; i < iterations; i++){

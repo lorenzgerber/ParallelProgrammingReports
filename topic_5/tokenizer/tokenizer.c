@@ -1,0 +1,37 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+char *tokenizer(char *str, const char *delim, char **saveptr, char **freeptr);
+
+int main(int argc, char*argv[]){
+
+  char *saveptr = NULL;
+  char *token;
+  
+  if (argc != 3){
+    fprintf(stderr, "Usage: %s string delim subdelim\n", argv[0]);
+    exit(EXIT_FAILURE);
+  }
+
+  token = tokenizer(argv[1], argv[2], &saveptr, &freeptr);
+  printf("%s\n", token);
+
+  printf("%s\n", freeptr);
+ 
+  return 0;
+}
+
+char *tokenizer(char *str, const char *delim, char **saveptr){
+  char *token;
+
+  if(str != NULL){
+    char *copied_str = malloc(strlen(str + 1));
+    strcpy(copied_str, str);
+    token = strtok_r(copied_str,delim, saveptr);
+  } else {
+    token = strtok_r(NULL, delim, saveptr); 
+  }
+
+  return token; 
+}

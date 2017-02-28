@@ -96,10 +96,32 @@ It can be seen that the results from serial and parallel computation differ. Thi
 A program was written to obtain the default scheduling of MP in for loops. Instead of indicating a range, indivdual indices for each thread are given. This is more flexible for various thread/iteration combinations when one thread can process two sequences of indices that don't follow each other. The source code can be found in appendix \ref{app:default}.  
 
 \section{Loop-carried dependence - 5.8}
+Here the problem of loop-carried dependence can be solved by looking at the actual function or values that result. Instead of using `back' indices, a more explicit form can be written:
+\begin{equation}
+(frac{i}{2} + 0.5)\times i  
+\end{equation}
 
 \section{Thread-safe string tokenizer - 5.16}
+Here it was asked to provide a string tokenizer that is thread save and does not modify the input string.
+A wrapper function was written around the thread-save string.h library function strtok_t to provide a version that does not modify the input string. Find below the source code:
+\begin{verbatim}
+char *tokenizer(char *str, const char *delim, char **saveptr){
+  char *token;
+
+  if(str != NULL){
+    char *copied_str = malloc(strlen(str + 1));
+    strcpy(copied_str, str);
+    token = strtok_r(copied_str,delim, saveptr);
+  } else {
+    token = strtok_r(NULL, delim, saveptr); 
+  }
+
+  return token; 
+}
+\end{verbatim}
 
 \section{Histogram A5.1}
+
 
 \section{Count sort A5.3}
 
