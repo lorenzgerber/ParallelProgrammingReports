@@ -98,7 +98,7 @@ A program was written to obtain the default scheduling of MP in for loops. Inste
 \section{Loop-carried dependence - 5.8}
 Here the problem of loop-carried dependence can be solved by looking at the actual function or values that result. Instead of using `back' indices, a more explicit form can be written:
 \begin{equation}
-(frac{i}{2} + 0.5)\times i  
+(\frac{i}{2} + 0.5)\times i  
 \end{equation}
 
 \section{Thread-safe string tokenizer - 5.16}
@@ -121,62 +121,8 @@ char *tokenizer(char *str, const char *delim, char **saveptr){
 \end{verbatim}
 
 \section{Histogram A5.1}
-Here, it was asked to use OpenMP to make a parallel version of the histogram program in chapter 2. The given serial code from chapter 2 was modified by including \verb+#pragma omp parallel for+ above the main 'work' for loop. Below the source code for the \verb+main+ function is shown. This seems a good example of how quick and easy some serial program can be made parallel by using OpenMP.
+Here, it was asked to use OpenMP to make a parallel version of the histogram program in chapter 2. The given serial code from chapter 2 was modified by including \verb+#pragma omp parallel for+ above the main 'work' for loop. The source code of the modified \verb+main+ function can be found in appendix \ref{app:histo}. This exercise seems to serve as a good example of how quick and easy some serial programs can be made parallel by using OpenMP.
 
-\begin{verbatim}
-#include <stdio.h>
-#include <stdlib.h>
-#include <omp.h>
-
-int main(int argc, char* argv[]) {
-   int bin_count, i, bin;
-   float min_meas, max_meas;
-   float* bin_maxes;
-   int* bin_counts;
-   int data_count;
-   float* data;
-   int thread_count;
-
-   /* Check and get command line args */
-   if (argc != 6) Usage(argv[0]); 
-   Get_args(argv, &bin_count, &min_meas, &max_meas, &data_count);
-   thread_count = strtol(argv[5], NULL, 10);
-
-   /* Allocate arrays needed */
-   bin_maxes = malloc(bin_count*sizeof(float));
-   bin_counts = malloc(bin_count*sizeof(int));
-   data = malloc(data_count*sizeof(float));
-
-   /* Generate the data */
-   Gen_data(min_meas, max_meas, data, data_count);
-
-   /* Create bins for storing counts */
-   Gen_bins(min_meas, max_meas, bin_maxes, bin_counts, bin_count);
-
-   /* Count number of values in each bin */
-#  pragma omp parallel for num_threads(thread_count)
-   for (i = 0; i < data_count; i++) {
-      bin = Which_bin(data[i], bin_maxes, bin_count, min_meas);
-      bin_counts[bin]++;
-   }
-
-#  ifdef DEBUG
-   printf("bin_counts = ");
-   for (i = 0; i < bin_count; i++)
-      printf("%d ", bin_counts[i]);
-   printf("\n");
-#  endif
-
-   /* Print the histogram */
-   Print_histo(bin_maxes, bin_counts, bin_count, min_meas);
-
-   free(data);
-   free(bin_maxes);
-   free(bin_counts);
-   return 0;
-
-}  /* main */
-\end{verbatim}
 
 \section{Count sort A5.3}
 \begin{enumerate}[label={\alph*)}]
@@ -246,6 +192,65 @@ int main(int argc, char* argv[]){
 }
 
 \end{verbatim}
+
+\section{C Source Code of Exercise A5.1}{\label{app:histo}}
+
+\begin{verbatim}
+#include <stdio.h>
+#include <stdlib.h>
+#include <omp.h>
+
+int main(int argc, char* argv[]) {
+   int bin_count, i, bin;
+   float min_meas, max_meas;
+   float* bin_maxes;
+   int* bin_counts;
+   int data_count;
+   float* data;
+   int thread_count;
+
+   /* Check and get command line args */
+   if (argc != 6) Usage(argv[0]); 
+   Get_args(argv, &bin_count, &min_meas, &max_meas, &data_count);
+   thread_count = strtol(argv[5], NULL, 10);
+
+   /* Allocate arrays needed */
+   bin_maxes = malloc(bin_count*sizeof(float));
+   bin_counts = malloc(bin_count*sizeof(int));
+   data = malloc(data_count*sizeof(float));
+
+   /* Generate the data */
+   Gen_data(min_meas, max_meas, data, data_count);
+
+   /* Create bins for storing counts */
+   Gen_bins(min_meas, max_meas, bin_maxes, bin_counts, bin_count);
+
+   /* Count number of values in each bin */
+#  pragma omp parallel for num_threads(thread_count)
+   for (i = 0; i < data_count; i++) {
+      bin = Which_bin(data[i], bin_maxes, bin_count, min_meas);
+      bin_counts[bin]++;
+   }
+
+#  ifdef DEBUG
+   printf("bin_counts = ");
+   for (i = 0; i < bin_count; i++)
+      printf("%d ", bin_counts[i]);
+   printf("\n");
+#  endif
+
+   /* Print the histogram */
+   Print_histo(bin_maxes, bin_counts, bin_count, min_meas);
+
+   free(data);
+   free(bin_maxes);
+   free(bin_counts);
+   return 0;
+
+}  /* main */
+\end{verbatim}
+
+
 
 \section{C Source Code of Exercise A5.3}{\label{app:countsort}}
 \begin{verbatim}
