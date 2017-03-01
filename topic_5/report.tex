@@ -145,6 +145,15 @@ Here, it was asked to use OpenMP to make a parallel version of the histogram pro
 
 
 \section{Backward substitution A5.4}
+\begin{enumerate}[label={\alph*)}]
+\item outer of row-oriented can not be parallelized
+\item inner of row-oriented can not meaningful be parallelized. it works using atomic but this deteriorates the performance to under the serial version
+\item the second outer loop of the column-oriented can not be parallelized
+\item the inner loop of the column-oriented can be parallelized
+\item Program
+\item Schedule
+\end{enumerate}
+
 
 \appendix
 
