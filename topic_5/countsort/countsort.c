@@ -44,7 +44,7 @@ int main(int argc, char *argv[]){
 
   //printf("\n");
 
-  printf("%e\n", (finish - start));
+  printf("0 %e\n", (finish - start));
 
   }
 
