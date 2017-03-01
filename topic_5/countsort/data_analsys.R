@@ -1,0 +1,8 @@
+setwd("~/git/ParallelProgrammingReports/topic_5/countsort")
+data_omp<-read.csv("omp_timings.txt", header=FALSE, sep=" ")
+data_serial<-read.csv("serial_timing.txt", header=FALSE, sep=" ")
+data_quick<-read.csv("timing_quick.txt", header=FALSE, sep=" ")
+data<-rbind(data_omp, data_serial)
+data<-rbind(data, data_quick)
+colnames(data)<-c("threads", "runtimes")
+boxplot(runtimes~threads, data, ylab="time in seconds", xlab="n threads")
