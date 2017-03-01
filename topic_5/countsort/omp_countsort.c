@@ -8,9 +8,8 @@
  */
 #include <stdio.h>
 #include <stdlib.h>
-#ifdef _OPENMP
+#include "timer.h"
 #include <omp.h>
-#endif
 #include <string.h>
 
 
@@ -20,7 +19,8 @@ int main(int argc, char *argv[]){
 
   int thread_count, i;
   int *test;
-  int data_count = strtol(argv[2], NULL, 10); 
+  int data_count = strtol(argv[2], NULL, 10);
+  double start, finish;
 
   test = (int*) malloc(data_count*sizeof(int));
     
@@ -35,14 +35,17 @@ int main(int argc, char *argv[]){
   }
   printf("\n");
 
+  GET_TIME(start);
   Count_sort(test, data_count, thread_count);
+  GET_TIME(finish);
 
   for(int i = 0; i < data_count; i++){
     printf("%d ", test[i]);
   }
 
   printf("\n");
-  
+
+  printf("%e\n", (finish - start));
 
   return 0;
 }
