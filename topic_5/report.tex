@@ -156,7 +156,7 @@ for (i = 0; i < n; i++) {
 \item The outer for loop of the row-oriented algorithm can not be parallelized because of the data dependency into the inner loop. 
 \item The inner for loop of the row-oriented backward substitution is basically a reduce operation onto an array. Hence it can be parallelized. Several attempts were tried. However, apparently, reduce on array is only implemented in OpenMP 4.5 which according to Lars (personal communication) is not supported widely by compilers yet. A work around with several parallel steps should be possible but was not attempted here due to time constraints. 
 \item The second outer loop of the column-oriented algo can not be parallelized due to the data dependency into the inner loop. 
-\item The inner loop of the column-oriented can be parallelized. Here a simple \verb+#pragma omp parallel for+ directive was used. According to Lars, it should be possible to parallelize the whole algorithm as a block and then use a `single' directive for the outer loop. Several attempts to obtain this did not work out correct. The suggestion from Lars resulted upon my (I assume incorrect) implementation a wrong result and crashed occasionaly the computer. 
+\item The inner loop of the column-oriented can be parallelized. Here a simple \verb+#pragma omp parallel for+ directive was used. According to Lars, it should be possible to parallelize the whole algorithm as a block and then use a `single' directive for the outer loop. Several attempts to obtain this did not work out correct. The suggestion from Lars resulted upon my (I assume incorrect) implementation in segfaults crashes or hanging. 
 \item The only parallel implementation that worked out was the parallelisation of the inner loop of the column oriented algorithm. The source code can be found in appendix \ref{app:backward}.
 
 \item Schedule
@@ -354,8 +354,80 @@ void Count_sort (int a [], int n , int thread_count) {
 
 \section{C Source Code of Exercise A5.4}{\label{app:countsort}}
 \begin{verbatim}
+/**
+ * omp_backward_substitution.c
+ *
+ * usage ./backward_substitution <threads> <matrix size n>
+ */
+#include <stdio.h>
+#include <stdlib.h>
+#include "timer.h"
+#include <omp.h>
+#include <string.h>
 
 
+int main(int argc, char *argv[]){
+
+  double** A;
+  double* b;
+  double* x;
+  int thread_count, row, col, i, j;
+  int n = strtol(argv[2], NULL, 10);
+  double start, finish;
+
+  thread_count = strtol(argv[1], NULL, 10);
+
+  b = malloc(n * sizeof(double));
+  x = malloc(n * sizeof(double));
+
+  // allocate 2d int array size n * n
+  A = malloc(n * sizeof(double*));
+  for (int i = 0; i < n; i++) {
+    A[i] = malloc(n * sizeof(double));
+  }
+
+  for (i = 0; i < n; i++){
+    for(j = 0; j < n; j++){
+      A[i][j] = i+j;
+    }
+  }
+
+  for (i = 0; i < n; i++){
+    b[i] = i;
+  }
+
+  GET_TIME(start);
+  
+  // backward substitution, column wise
+# pragma for num_threads(thread_count)
+  for (row = 0; row < n; row++)
+    x[row] = b[row];
+
+  for (col = n-1; col >= 0; col--){
+    x[col] /= A[col][col];
+
+#   pragma omp for num_threads(thread_count)
+    for (row = 0; row < col; row++)
+      x[row] -= A[row][col]*x[col];
+
+  }
+
+  GET_TIME(finish);
+
+  for(i=0; i< n; i++){
+    printf("%f ", x[i]);
+  }
+  printf("\n");
+  printf("%e\n", (finish-start));
+
+
+  for (i = 0; i < n; i++) {
+    free(A[i]);
+  }
+  free(A);
+
+  return 0;
+}
 \end{verbatim}
 
 \addcontentsline{toc}{section}{\refname}
