@@ -19,70 +19,64 @@ int main(int argc, char *argv[]){
   b = malloc(n * sizeof(double));
   x = malloc(n * sizeof(double));
 
+
+  
+  
   // allocate 2d int array size n * n
   A = malloc(n * sizeof(double*));
   for (int i = 0; i < n; i++) {
     A[i] = malloc(n * sizeof(double));
   }
 
+  for(int p = 2; p < 1025; p*=2){
+    //for(int p = 10; p < 1001; p*=10){
+  for(int k = 0; k < 10;k++){
+    
  
   srand(0);
   for (i = 0; i < n; i++){
     for(j = 0; j < n; j++){
-      A[i][j] = i+j;//rand()%21-10;
-      //printf("%f ", A[i][j]);
+      A[i][j] = i+j;
     }
-    //printf("\n");
   }
 
   for (i = 0; i < n; i++){
-    b[i] = i;//rand()%21-10;
+    b[i] = i;
   }
 
   //thread_count = strtol(argv[1], NULL, 10);
 
 
   GET_TIME(start);
-  // backward substition, row wise
-  /*
-  for (row = n-1; row >= 0; row--){
-    x[row] = b[row];
-  
-    for (col = row+1; col < n; col++)
-      x[row] -= A[row][col]*x[col];
-    x[row] /= A[row][row];
-
-    }*/
-  
-
-  
   // backward substitution, column wise
 
-
-  
-
+# pragma omp parallel num_threads(thread_count)
+  {
+# pragma omp for
   for (row = 0; row < n; row++)
     x[row] = b[row];
 
-# pragma omp parallel num_threads(thread_count)
   for (col = n-1; col >= 0; col--){
-    # pragma omp single
+#   pragma omp single
     x[col] /= A[col][col];
 
 # pragma omp for
     for (row = 0; row < col; row++)
       x[row] -= A[row][col]*x[col];
   }
-
+  }
+    
 
   GET_TIME(finish);
 
-  for(i=0; i< n; i++){
-    printf("%f ", x[i]);
-  }
-  printf("\n");
-  printf("%e\n", (finish-start));
+  //for(i=0; i< n; i++){
+  //  printf("%f ", x[i]);
+  //}
+  //printf("\n");
+  printf("%d %e\n", p, (finish-start));
 
+  }
+  }
 
   for (i = 0; i < n; i++) {
     free(A[i]);
