@@ -28,7 +28,7 @@ int main(int argc, char *argv[]){
     A[i] = malloc(n * sizeof(double));
   }
 
-  for(int p = 2; p < 1025; p*=2){
+  //  for(int p = 2; p < 1025; p*=2){
     //for(int p = 10; p < 1001; p*=10){
   for(int k = 0; k < 10;k++){
     
@@ -50,21 +50,19 @@ int main(int argc, char *argv[]){
   GET_TIME(start);
   // backward substitution, column wise
 
-
+#pragma omp parallel for num_threads(thread_count) \
+  schedule(auto)
   for (row = 0; row < n; row++)
     x[row] = b[row];
 
-#pragma omp parallel
-  {
   for (col = n-1; col >= 0; col--){
-#   pragma omp single
     x[col] /= A[col][col];
 
-# pragma omp for
+# pragma omp parallel for num_threads(thread_count) \
+  schedule(auto)
     for (row = 0; row < col; row++)
       x[row] -= A[row][col]*x[col];
   }
-  } 
 
   GET_TIME(finish);
 
@@ -72,10 +70,10 @@ int main(int argc, char *argv[]){
   //  printf("%f ", x[i]);
   //}
   //printf("\n");
-  printf("%d %e\n", p, (finish-start));
+  printf("1 %e\n",  (finish-start));
 
   }
-  }
+  //}
 
   for (i = 0; i < n; i++) {
     free(A[i]);
