@@ -24,7 +24,7 @@
 \coursecode{5DV152}
 \title{Exercises, Chapter/Topic 5}
 \author{Lorenz Gerber ({\tt{dv15lgr@cs.umu.se}} {\tt{lozger03@student.umu.se}})}
-\date{2017-02-03}
+\date{2017-03-02}
 %\revisiondate{2016-01-18}
 \instructor{Lars Karlsson / Mikael Ränner}
 
@@ -86,14 +86,14 @@ The identity values for various operators are shown in table \ref{tab:identity}.
 \end{table}
 
 \section{Rounding errors - 5.5}
-It was assumed that in this exercise, one does not have to worry about how floats actually are represented in computers with sign, exponent and signigicant field.
+It was assumed that in this exercise, one does not have to worry about how floats actually are represented in computers with sign, exponent and significant field.
 The interpretation is just based on how many digits are used to represent the given numbers. Hence in a), the sequence of values in the variable sum is ${0.0, 2.0, 4.0, 8.0, 1010.0}$. The last value is based on the fact that 1008.0 will be rounded from four digits in the register to 1010 with 3 digits in the variable.
 For b), sum of thread 0 is ${0.0, 2.0, 4.0}$, and sum for thread 1 is ${0.0, 4.0, 1000.0}$. After the reduce of sum from both threads, sum will be $1000$.
 
 It can be seen that the results from serial and parallel computation differ. This is because for floats, the sequence of addition matters when values are rounded due to too high precision. 
 
 \section{Default scheduling - 5.6}
-A program was written to obtain the default scheduling of MP in for loops. Instead of indicating a range, indivdual indices for each thread are given. This is more flexible for various thread/iteration combinations when one thread can process two sequences of indices that don't follow each other. The source code can be found in appendix \ref{app:default}.  
+A program was written to obtain the default scheduling of MP in for loops. Instead of indicating a range, individual indices for each thread are given. This is more flexible for various thread/iteration combinations when one thread can process two sequences of indices that don't follow each other. The source code can be found in appendix \ref{app:default}.  
 
 \section{Loop-carried dependence - 5.8}
 Here the problem of loop-carried dependence can be solved by looking at the actual function or values that result. Instead of using `back' indices, a more explicit form can be written:
@@ -127,7 +127,7 @@ Here, it was asked to use OpenMP to make a parallel version of the histogram pro
 \section{Count sort A5.3}
 \begin{enumerate}[label={\alph*)}]
 \item the variables \verb+i+ and \verb+count+ should be made private.
-\item No, there are only data dependences left, but by setting private the above mentioned variables, there are no loop-carried dependences left. 
+\item No, there are only data dependencies left, but by setting private the above mentioned variables, there are no loop-carried dependencies left. 
 \item It would be possible to make memcpy parallel by parametrizing the arguments:
 \begin{verbatim}
 for (i = 0; i < n; i++) {
@@ -144,7 +144,7 @@ for (i = 0; i < n; i++) {
 
   \centering
   \includegraphics[width=1\textwidth]{countsort.png}
-  \caption{\textit{This boxplot shows the comparison of the parallel OpenMP count sort implementation (n = \{2, 4, 6, 8\} with the serial countsort (n = 0) and with using the serial quicksort library function (n = 1). It is quite obious that quicksort outperforms also the parallel OpenMP implementation.}}
+  \caption{\textit{This boxplot shows the comparison of the parallel OpenMP count sort implementation (n = \{2, 4, 6, 8\} with the serial countsort (n = 0) and with using the serial quicksort library function (n = 1). It is quite obvious that quicksort outperforms also the parallel OpenMP implementation.}}
   \label{fig:countsort}
 \end{figure}
 
@@ -159,9 +159,15 @@ for (i = 0; i < n; i++) {
 \item The inner loop of the column-oriented can be parallelized. Here a simple \verb+#pragma omp parallel for+ directive was used. According to Lars, it should be possible to parallelize the whole algorithm as a block and then use a `single' directive for the outer loop. Several attempts to obtain this did not work out correct. The suggestion from Lars resulted upon my (I assume incorrect) implementation in segfaults crashes or hanging. 
 \item The only parallel implementation that worked out was the parallelisation of the inner loop of the column oriented algorithm. The source code can be found in appendix \ref{app:backward}.
 
-\item Schedule
+\item To evaluate the various scheduling schemes, series of $n = \{1, 2, .. 1024\}$ for the parameter \verb+chunksize+ where run in 10 replicates. The default scheduling was used as benchmark. From the data series plotted in figure \ref{fig:scheduling}, the best values for chunksize were selected graphically. The lower right subplot of figure \ref{fig:scheduling} shows then the comparison of the best values against the default scheduling, here termed `auto'. Default scheduling performed best. I assume that in many matrix operations, the block-cyclic scheduling when well adapted to the matrix size will outperform other scheduling types. It would be interesting to know which scheduling is applied here by default and why it is faster than the wide range of the tested alternatives. I assume that just testing for a range is probably also not sufficient as there could be `jumps' in efficiency from one value to the next if it matches in some wait the underlying data to be scheduled.  
 \end{enumerate}
 
+\begin{figure}
+  \centering
+  \includegraphics[width=1\textwidth]{scheduling.png}
+  \caption{\textit{The four boxplots show a timing (n=10) for different schedulings of the parallel backward substitution algorithm (column bound). The tested schedulings were `static' (upper-left), `dynamic' (lower-left) and  `guided' (upper-right), in comparison to `default' or `auto' (lower-right). }}
+  \label{fig:scheduling}
+\end{figure}
 
 \appendix
 
