@@ -59,19 +59,20 @@ int main(int argc, char *argv[]){
   // backward substitution, column wise
 
 
-  
+# pragma omp parallel private(col, row)
+  {
+#   pragma omp for
+    for (row = 0; row < n; row++)
+      x[row] = b[row];
 
-  for (row = 0; row < n; row++)
-    x[row] = b[row];
+    for (col = n-1; col >= 0; col--){
+#     pragma omp single
+      x[col] /= A[col][col];
 
-# pragma omp parallel num_threads(thread_count)
-  for (col = n-1; col >= 0; col--){
-    # pragma omp single
-    x[col] /= A[col][col];
-
-# pragma omp for
+#   pragma omp for
     for (row = 0; row < col; row++)
       x[row] -= A[row][col]*x[col];
+    }
   }
 
 
