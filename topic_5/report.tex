@@ -159,9 +159,15 @@ for (i = 0; i < n; i++) {
 \item The inner loop of the column-oriented can be parallelized. Here a simple \verb+#pragma omp parallel for+ directive was used. According to Lars, it should be possible to parallelize the whole algorithm as a block and then use a `single' directive for the outer loop. Several attempts to obtain this did not work out correct. The suggestion from Lars resulted upon my (I assume incorrect) implementation in segfaults crashes or hanging. 
 \item The only parallel implementation that worked out was the parallelisation of the inner loop of the column oriented algorithm. The source code can be found in appendix \ref{app:backward}.
 
-\item Schedule
+\item To evaluate the various scheduling schemes, series of $n = \{1, 2, .. 1024\}$ for the parameter \verb+chunksize+ where run in 10 replicates. The default scheduling was used as benchmark. From the data series plotted in figure \ref{fig:scheduling}, the best values for chunksize were selected graphically. The lower right subplot of figure \ref{fig:scheduling} shows then the comparison of the best values against the default scheduling, here termed `auto'. Default scheduling performed best. I assume that in many matrix operations, the block-cyclic scheduling when well adapted to the matrix size will outperform other scheduling types. It would be interesting to know which scheduling is applied here by default and why it is faster than the wide range of the tested alternatives. I assume that just testing for a range is probably also not sufficient as there could be `jumps' in efficiency from one value to the next if it matches in some wait the underlying data to be scheduled.  
 \end{enumerate}
 
+\begin{figure}
+  \centering
+  \includegraphics[width=1\textwidth]{scheduling.png}
+  \caption{\textit{The four boxplota show a timing (n=10) for differnt schedulings of the parallel backward substitution algorithm (column bound). The tested schedulings were `static' (upper-left), `dynamic' (lower-left) and  `guided' (upper-right), in comparison to `default' or `auto' (lower-right). }}
+  \label{fig:scheduling}
+\end{figure}
 
 \appendix
 
