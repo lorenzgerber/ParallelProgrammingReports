@@ -1,0 +1,5 @@
+#!/bin/bash
+for i in `seq 1 10`;
+do
+    ./nbody_basic 500 1000 0.05 1 g
+done

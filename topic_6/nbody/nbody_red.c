@@ -137,6 +137,7 @@ int main(int argc, char* argv[]) {
        * Compute_force(n-2, . . .) */
       memset(forces, 0, n*sizeof(vect_t));
       for (part = 0; part < n-1; part++)
+      //for (part = 0; part < n; part++){
          Compute_force(part, forces, curr, n);
       for (part = 0; part < n; part++)
          Update_part(part, forces, curr, n, delta_t);
@@ -149,6 +150,7 @@ int main(int argc, char* argv[]) {
       if (step % output_freq == 0)
          Output_state(t, curr, n);
 #     endif
+      //}
    }
    
    GET_TIME(finish);
@@ -264,7 +266,7 @@ void Gen_init_cond(struct particle_s curr[], int n) {
    double gap = 1.0e5;
    double speed = 3.0e4;
 
-   srandom(1);
+   srand(1);
    for (part = 0; part < n; part++) {
       curr[part].m = mass;
       curr[part].s[X] = part*gap;
