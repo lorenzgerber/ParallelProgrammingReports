@@ -22,9 +22,9 @@
 \department{Department of Computing Science}
 \coursename{Parallel Programming 7.5 p}
 \coursecode{5DV152}
-\title{Exercises, Chapter/Topic 1}
+\title{Exercises, Chapter/Topic 6}
 \author{Lorenz Gerber ({\tt{dv15lgr@cs.umu.se}} {\tt{lozger03@student.umu.se}})}
-\date{2017-01-26}
+\date{2017-03-09}
 %\revisiondate{2016-01-18}
 \instructor{Lars Karlsson / Mikael Ränner}
 
@@ -66,6 +66,26 @@
 
 \section{Introduction}
 This report is part of the mandatory coursework. It describes the solutions for several chosen exercises from the course book \cite{pacheco2011}.
+
+\section{Modification of $n$ body solver}
+Yes it would be possible to remove the the inner \verb+for+ loop. However, as the calculation of force makes use of the position of all particles, updates to the position would need to be stored in a temporary variable and updated after calculating the force for all particles of the current step. This would probably deteriorate a potential speed gain from removing some structure again.
+
+\section{Extrapolation of execution time for $n$ body solver}
+The serial n-body solver was run according to the specifications in the book for 500 to 2000 particles with 3 replicates. The timings were then plotted as shown in figure \ref{fig:nbody}. From the plot shape, a transformation was guessed ($x^2$). Then a linear model was fitted and extrapolated to 24h. The approximation for 24h was 70´000 particles.
+
+\section{Eliminating implied barriers}
+
+\section{DAXPY}
+
+\section{L2 cache misses}
+
+\section{Local/global index conversions}
+
+\section{Stack splitting in TSP}
+
+\section{Choosing an API}
+
+
 
 \addcontentsline{toc}{section}{\refname}
 \bibliography{references}
