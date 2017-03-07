@@ -71,12 +71,86 @@ This report is part of the mandatory coursework. It describes the solutions for 
 Yes it would be possible to remove the the inner \verb+for+ loop. However, as the calculation of force makes use of the position of all particles, updates to the position would need to be stored in a temporary variable and updated after calculating the force for all particles of the current step. This would probably deteriorate a potential speed gain from removing some structure again.
 
 \section{Extrapolation of execution time for $n$ body solver}
-The serial n-body solver was run according to the specifications in the book for 500 to 2000 particles with 3 replicates. The timings were then plotted as shown in figure \ref{fig:nbody}. From the plot shape, a transformation was guessed ($x^2$). Then a linear model was fitted and extrapolated to 24h. The approximation for 24h was 70´000 particles.
+The serial n-body solver was run according to the specifications in the book for 500 to 2000 particles with 3 replicates. The timings were then plotted as shown in figure \ref{fig:nbody.png}. From the plot shape, a transformation was guessed ($x^2$). Then a linear model was fitted and extrapolated to 24h. The approximation for 24h was 70'000 particles.
+
+\begin{figure}
+  \centering
+  \includegraphics[width=1\textwidth]{nbody.png}
+  \caption{\textit{This figure shows the measured timings from running the nbody solver with 1000 timesteps of stepsize 0.75 in range for particles from 500 to 2000. The graph was used to estimate a good transformation function. Here $x^2$ was found to be suitable }}
+  \label{fig:nbody}
+\end{figure}
 
 \section{Eliminating implied barriers}
 Eliminating the implied barriers in the basic OpenMP implementation has a similar consequence as described in question 6.1. As calculation of the force on particles needs the position information of each and every particle, threads that `run' ahead to the position update block and change the positions while others still calculate the force would result in wrong force values and as a consequence also false positions. Hence, removing the implied barriers would result in a wrong and unpredictable result.
   
 \section{DAXPY}
+Here a \textit{DAXPY} calculation was implemented using OpenMP. The source code can be seen below. The aim was to test the influence of using either a block or a cyclic partitioning for the scheduling of the parallel for loops. While cyclic partioning is obtained by using the \verb+schedule(static, 1)+ clause. For block partioning $array_length \div cores$ was used as value $n$ in the \verb+schedule(static, n)+ clause.
+
+ The result in terms of runtimes using an increasing number of cores can be seen in figure \ref{fig:daxpy}. It is obvious that the block partitioning performs better and more consistent for all instances of core numbers. While block partioning is always faster, it's runtimes are generally also subjected to less variation compared to cyclic partitioning.
+
+The reason for the difference in performance should be the memory access. It is much more efficient when a thread can access and use non-interrupted ranges of memory addresses as it is the case with block partioning.  
+ 
+\begin{verbatim}
+#include <stdio.h>
+#include <stdlib.h>
+#include "timer.h"
+#include <omp.h>
+#include <string.h>
+
+
+int main(int argc, char *argv[]){
+
+  double a;
+  double* x;
+  double* y;
+  int i;
+  int thread_count = strtol(argv[1], NULL, 10);
+  int n = strtol(argv[2], NULL, 10);
+  int c = strtol(argv[3], NULL, 10);
+  
+  double start, finish;
+
+  x = malloc(n * sizeof(double));
+  y = malloc(n * sizeof(double));
+  
+  srand(0);
+  a = rand();
+  for (i = 0; i < n; i++){
+    x[i] = rand();
+    y[i] = rand();
+  }
+  
+  GET_TIME(start);
+
+# pragma omp parallel private(i) num_threads(thread_count)
+  {
+
+#   pragma omp for schedule(static, c)
+    for (i = 0; i < n; i++)
+      x[i]=a*x[i];
+#   pragma omp for schedule(static, c)
+    for(i = 0; i < n; i++)
+      y[i] = x[i] + y[i];
+  }
+
+  GET_TIME(finish);
+
+  printf("%d %d %e\n", thread_count, c, (finish-start));
+
+  free(x);
+  free(y);
+
+  return 0;
+}
+
+\end{verbatim}
+
+\begin{figure}
+  \centering
+  \includegraphics[width=1\textwidth]{daxpy.png}
+  \caption{\textit{This figure shows the measured timings from running the omp\_daxpy.c program with either cyclic or block partitioning on 1'000'000 n arrays using $\{2, 4, 8, 16\}$ cores on the HPC2N `abisko' cluster. It is obvious that a pure cyclic scheduling is suboptimal as here threads can not work on uninterrupted ranges of memory which significantly slows down the calculation.}}
+  \label{fig:daxpy}
+\end{figure}
 
 \section{L2 cache misses}
 
