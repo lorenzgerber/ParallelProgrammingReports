@@ -8,19 +8,17 @@
 int main(int argc, char *argv[]){
 
   double a;
-  double* b;
   double* x;
-  int thread_count, i;
+  double* y;
+  int i;
+  int thread_count = strtol(argv[1], NULL, 10);
   int n = strtol(argv[2], NULL, 10);
+  int c = strtol(argv[3], NULL, 10);
+  
   double start, finish;
-
-  thread_count = strtol(argv[1], NULL, 10);
 
   x = malloc(n * sizeof(double));
   y = malloc(n * sizeof(double));
-
-
-  
   
   srand(0);
   a = rand();
@@ -34,17 +32,17 @@ int main(int argc, char *argv[]){
 # pragma omp parallel private(i) num_threads(thread_count)
   {
 
-#   pragma omp for schedule(static,1)
+#   pragma omp for schedule(static, c)
     for (i = 0; i < n; i++)
       x[i]=a*x[i];
-#   pragma omp for schedule(static,1)
+#   pragma omp for schedule(static, c)
     for(i = 0; i < n; i++)
       y[i] = x[i] + y[i];
   }
 
   GET_TIME(finish);
 
-  printf("%e\n", (finish-start));
+  printf("%d %d %e\n", thread_count, c, (finish-start));
 
   free(x);
   free(y);
