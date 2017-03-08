@@ -175,7 +175,7 @@ k \times b + l
 \end{equation*}
 \item local from global for block distribution
 \begin{equation*}
-g (\mod b)
+g \mod b
 \end{equation*}
 \item global from local for cyclic distribution
 \begin{equation*}

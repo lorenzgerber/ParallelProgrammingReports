@@ -1,0 +1,1 @@
+setwd("~/git/ParallelProgrammingReports/topic_6/tsp")
