@@ -10,6 +10,8 @@
 \usepackage{pgf-umlcd}
 \usepackage{blindtext}
 \usepackage{enumitem}
+\usepackage{amsmath}
+\usepackage{amssymb}
 %\usepackage{lmodern}   % Optional fonts. (not necessary)
 %\usepackage{tabularx}
 %\usepackage{microtype} % Provides some typographic improvements over default settings
@@ -148,15 +150,52 @@ int main(int argc, char *argv[]){
 \begin{figure}
   \centering
   \includegraphics[width=1\textwidth]{daxpy.png}
-  \caption{\textit{This figure shows the measured timings from running the omp_daxpy.c program with either cyclic or block partitioning on 1'000'000 n arrays using $\{2, 4, 8, 16\}$ cores on the HPC2N `abisko' cluster. It is obvious that a pure cyclic scheduling is suboptimal as here threads can not work on uninterrupted ranges of memory which significantly slows down the calculation.}}
+  \caption{\textit{This figure shows the measured timings from running the omp\_daxpy.c program with either cyclic or block partitioning on 1'000'000 n arrays using $\{2, 4, 8, 16\}$ cores on the HPC2N `abisko' cluster. It is obvious that a pure cyclic scheduling is suboptimal as here threads can not work on uninterrupted ranges of memory which significantly slows down the calculation.}}
   \label{fig:daxpy}
 \end{figure}
 
 \section{L2 cache misses}
+The aim here was to analyze a program consisting of two loops and determine for the second loop the number of cache misses under two different chunksizes, \verb+n/thread_count+ and \verb+8+. It is important to notice that the chunksize in the first \verb+for+ loop is \verb+n/thread_count+. In the \verb+schedule+ clause of OpenMP, this can be interpreted as block partitioning. In the current setup a cache-line holds 8 doubles and the number of doubles in the two arrays of interest are 64. Hence, in the first \verb+for+ loop each core, which by definition has it's own L2 cache, will have access to each 32 doubles in 4 cache lines (4 cache lines at each core). Using block partitioning in the first \verb+for+ loop should yield doubles of the arrays $x$ and $y$ with indices $\{0...31\}$ to end up in the L2 cache of core $0$ and those with indices $\{32...63\}$ at core $1$.
+
+\subsection*{chunksize = n/thread\_count}
+When now the schedule clause in the second \verb+for+ loop is identical to the first, it can be assumed that each core will get the indices of the loop to which there are the corresponding array entries in the L2 cache. Hence this setup results in zero cache misses.
+ 
+\subsection*{chunksize = 8}
+Here for the second \verb+for+ loop, block partitioning with chunksize 8 was chosen. As one cache line holds 8 doubles, from the total of 8 cache lines assigned during the first loop (8 per array, hence 16 for both $x$ and $y$), 4 are in the L2 of the `wrong' core. Hence, 4 cache misses per array (8 for both $x$ and $y$) will result. 
+
+Another detail is that in this configuration, 32 doubles on 4 cache lines happen to be in the cache of the `wrong' core for the second loop. However, when a cache miss happens, a whole cache line is read again, therefore the following 7 doubles will no longer result in cache misses.  
 
 \section{Local/global index conversions}
+To devise formulas for translation from global to local indices and vice versa, the following variables are used: $k$ for rank, $b$ for blocksize, $l$ for local index and $g$ for global index.
+
+\begin{enumerate}[label={\alph*)}]
+\item global index from local for block distribution
+\begin{equation*}
+k \times b + l
+\end{equation*}
+\item local from global for block distribution
+\begin{equation*}
+g (\mod b)
+\end{equation*}
+\item global from local for cyclic distribution
+\begin{equation*}
+(g-k) \div b
+\end{equation*}
+\item local from global for cyclic distribution
+\begin{equation*}
+l \times b + k
+\end{equation*}
+\end{enumerate}
+
 
 \section{Stack splitting in TSP}
+\begin{enumerate}[label={\alph*)}]
+\item Splitting the stack half, $k/2$
+\item Sorting for tour length, divide round robin
+\item Sorting for tour-length-divided-by-number-of-nodes, divide round robin
+\end{enumerate}
+
+
 
 \section{Choosing an API}
 
