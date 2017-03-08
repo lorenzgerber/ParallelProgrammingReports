@@ -24,7 +24,7 @@ int main(int argc, char *argv[]){
 
   test = (int*) malloc(data_count*sizeof(int));
 
-  for (k = 2; k < 10; k += 2){
+  for (k = 2; k < 18; k *= 2){
   for (j = 0; j < 100; j++){
   
   srand(0);

@@ -216,9 +216,12 @@ int main(int argc, char* argv[]) {
       pthread_join(thread_handles[thread], NULL);
    GET_TIME(finish);
    
+   /*
    Print_tour(-1, best_tour, "Best tour");
    printf("Cost = %d\n", best_tour->cost);
    printf("Elapsed time = %e seconds\n", finish-start);
+   */
+   printf("%d %e\n",thread_count, finish-start);
 
 #  ifdef STATS
    printf("Stack splits = %d\n", stack_splits);
