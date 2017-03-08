@@ -148,6 +148,7 @@ tour_t Pop(my_stack_t stack);
 int  Empty_stack(my_stack_t stack);
 void Free_stack(my_stack_t stack);
 void Print_stack(my_stack_t stack, long my_rank, char title[]);
+int comp_avg_cost(const void *p, const void *q);
 
 /* Circular queue */
 my_queue_t Init_queue(int size);
@@ -1178,11 +1179,14 @@ void Free_term(void) {
  */
 my_stack_t Split_stack(my_stack_t stack, long my_rank) {
    int new_src, new_dest, old_src, old_dest;
+   
    my_stack_t new_stack = Init_stack();
-
+   
 #  ifdef TERM_DEBUG
    Print_stack(stack, my_rank, "Original old stack");
 #  endif
+
+   qsort((void*)stack->list, stack->list_sz, sizeof(tour_t), comp_avg_cost);
 
    new_dest = 0;
    old_dest = 1;
@@ -1203,3 +1207,22 @@ my_stack_t Split_stack(my_stack_t stack, long my_rank) {
 
    return new_stack;
 }  /* Split_stack */
+
+
+/*------------------------------------------------------------------           
+ * Function:  comp_cost
+ * Purpose:   comperator used in Split_stack
+ * Out global:  int value interpreted by qsort for ascending order
+ */
+int comp_avg_cost(const void *v1, const void *v2) {
+  double result;
+  tour_t p1 = (tour_t)v1;
+  tour_t p2 = (tour_t)v2;
+  result = (double)p1->cost/(double)p1->count - (double)p2->cost/(double)p2->count;
+  if (result < 0)
+    return -1;
+  else if (result > 0)
+    return 1;
+  else
+    return 0;
+}
