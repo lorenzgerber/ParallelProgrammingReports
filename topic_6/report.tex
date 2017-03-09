@@ -195,8 +195,7 @@ l \times b + k
 \item Sorting for tour-length-divided-by-number-of-nodes, divide round robin
 \end{enumerate}
 
-All programs were implemented using the pthread `dynamic tsp' program as basis. Besides new sort comparator functions, all change was within the stack 
-
+All programs were implemented using the pthread `dynamic tsp' program as basis. Beside sort comparator functions, all code to be changed was within the \verb+Split_stack+ function. The source code for the \textit{k/2} implementation can be found in appendix \ref{app:k2}, for the \textit{least-cost} implementation in appendix \ref{app:cost} and for the \textit{average cost per edge} in appendix \ref{app:avgcost}.  
 
 The implemented programs were run batch run for benchmarking on the HPC2N cluster. Each measurment was repeated five times. Looking at individual boxplots (not shown) it was obvious that variation within replicates was small, hence the data was summarized using median values in table \ref{tab:tsp}.
 
@@ -215,7 +214,11 @@ cores & dynamic & k/2   & cost  & avg cost \\ \hline
 
 
 \section{Choosing an API}
-
+\begin{enumerate}[label={\alph*)}]
+\item \textbf{Memory requirements}
+\item \textbf{Communications}
+\item \textbf{Ease of Parallelization by OpenMP directives}
+\end{enumerate}
 
 
 \addcontentsline{toc}{section}{\refname}

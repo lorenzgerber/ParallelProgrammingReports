@@ -195,10 +195,31 @@ l \times b + k
 \item Sorting for tour-length-divided-by-number-of-nodes, divide round robin
 \end{enumerate}
 
+All programs were implemented using the pthread `dynamic tsp' program as basis. Besides new sort comparator functions, all change was within the stack 
+
+
+The implemented programs were run batch run for benchmarking on the HPC2N cluster. Each measurment was repeated five times. Looking at individual boxplots (not shown) it was obvious that variation within replicates was small, hence the data was summarized using median values in table \ref{tab:tsp}.
+
+\begin{table}[]
+\centering
+\caption{\textit{This table shows the timing from running various version of the Travelling Salesman Problem algorithm. The difference between the various versions is how the stack is splitted when one thread runs out of work. Timings were collected on the HPC2N `Abisko' cluster.}}
+\label{tab:tsp}
+\begin{tabular}{l|cccc}
+cores & dynamic & k/2   & cost  & avg cost \\ \hline
+1     & 78.09   & 77.50 & 78.40 & 77.43    \\
+2     & 41.13   & 41.53 & 40.79 & 40.42    \\
+4     & 22.29   & 22.14 & 22.26 & 22.17    \\
+8     & 12.85   & 12.95 & 12.97 & 12.67   
+\end{tabular}
+\end{table}
 
 
 \section{Choosing an API}
-
+\begin{enumerate}[label={\alph*)}]
+\item \textbf{Memory requirements}
+\item \textbf{Communications}
+\item \textbf{Ease of Parallelization by OpenMP directives}
+\end{enumerate}
 
 
 \addcontentsline{toc}{section}{\refname}
