@@ -1,0 +1,264 @@
+\NeedsTeXFormat{LaTeX2e} 
+\ProvidesPackage{UmUStudentReport} [2015/09/18 Layout for a student
+reports]
+
+
+% INCLUDED PACKAGES
+% -----------------
+
+% If you got a latex distribution where one of them are not included,
+% either download it or remove it. If it is removed you may get
+% problems with some of the other stuff in the package, but it should
+% be save to comment out that row. 
+\RequirePackage[T1]{fontenc}
+\RequirePackage[utf8]{inputenc}
+\RequirePackage{remreset}          % For internal use in the package.
+\RequirePackage{authblk}           % For internal use in the package.
+\RequirePackage{fancyhdr}          % Used for nice page headings.
+\RequirePackage[hang]{caption}     % Nicer figure and table captions.
+\RequirePackage{lastpage}          % Used to get the last page of the
+                                % document.
+\ifx\pdftexversion\undefined
+  \RequirePackage[dvips]{graphicx} % Graphics package used for
+                                % ps-files.
+\else
+  \RequirePackage[pdftex]{graphicx}% Graphics package used for
+                                % pdf-files.
+\fi
+\RequirePackage{hyperref}
+\RequirePackage[yyyymmdd]{datetime}
+\RequirePackage{float}             % Adds functionality for floats.
+
+
+
+% INTERNAL COMMAND
+% ----------------
+
+\def\@date{\@latex@error@no@line{No \noexpand\date given}}
+\def\department#1{\gdef\@department{#1}}
+\def\@department{\@latex@error@no@line{No \noexpand\department given}}
+\def\coursename#1{\gdef\@coursename{#1}}
+\def\@coursename{\@latex@error@no@line{No \noexpand\coursename given}}
+\def\coursecode#1{\gdef\@coursecode{#1}}
+\def\@coursecode{\@latex@error@no@line{No \noexpand\coursecode given}}
+\def\instructor#1{\gdef\@instructor{#1}}
+\def\@instructor{\@latex@warning@no@line{No \noexpand\instructor
+    given}}
+\def\instructorname{Instructor}
+\def\authorname{Author}
+\def\@university{Ume{\aa} University}
+\def\@revisiondate{}
+\def\revisiondate#1{\gdef\@revisiondate{#1}}
+\def\revisiondatename#1{Revision date}
+\def\datename#1{Submitted}
+\def\title#1{\gdef\@title{#1}\gdef\thetitle{#1}}
+
+
+\def\redefine#1#2{
+   \ifx#1\@undefined\else%
+   \renewcommand#1{#2}%
+   \fi%
+}
+
+\redefine{\bibname}{References}
+
+% PAGE SIZE
+% ---------
+\hoffset         -1in % reset offset to top left corner
+\voffset         -1in %       - " - 
+\textheight     231mm 
+\textwidth      140mm 
+\topmargin       12mm % Distance before the head
+\oddsidemargin   35mm % Good for two sided printing
+\evensidemargin  35mm %       - " -
+\headheight      14mm
+\headsep         5mm  % Distance betwen the head and the text.
+\marginparwidth  15mm % You should not use margins.
+\marginparsep     7pt  
+\marginparpush   12pt
+
+% PACKAGE OPTIONS
+% ---------------
+
+% Swedish option. Use the package as 
+%   \usepackage[se]{article} 
+% if it is written in Swedish. 
+\DeclareOption{se}{
+  % Text indentation and paragraph separation usualy differs between
+  % text writing in Swedish and text in English. In Swedish texts (and
+  % sometimes in English texts) you prefer to have a larger space
+  % between paragraphs, but no indentation. This is can be adjusted
+  % with
+  % the following commands. If you like to have this style even in
+  % English texts, copy these two line and put the in the document.
+  \setlength{\parindent}{0pt}  % Text indentation.
+  \setlength{\parskip}{6pt}  % Space between paragraphs 
+
+  % French spacing makes non-english text more readable.
+  \frenchspacing
+
+  % The following commands redefines some commands to use Swedish
+  % instead of English labels.
+  %\redefine{\today}{\number\year-\number\month-\number\day}
+  \redefine{\authorname}{F{\"o}rfattare}
+  \redefine{\contentsname}{Inneh{\aa}llsf{\"o}rteckning}
+  \redefine{\listfigurename}{Figurf{\"o}rteckning}
+  \redefine{\listtablename}{Tabellf{\"o}rteckning}
+  \redefine{\figurename}{Figur}
+  \redefine{\tablename}{Tabell}
+  \redefine{\appendixname}{Appendix}
+  \redefine{\refname}{K{\"a}llf{\"o}rteckning}
+  \redefine{\indexname}{Index}
+  \redefine{\revisiondatename}{Reviderad}
+  \redefine{\instructorname}{Handledare}
+  \redefine{\datename}{Inl{\"a}mnad}
+  \redefine{\@university}{Ume{\aa} Universitet}
+}
+
+\DeclareOption{noindent}{
+  % If you prefer not to have indentation of paragraphs
+  \setlength{\parindent}{0pt}  % Text indentation.
+  \setlength{\parskip}{6pt}  % Space between paragraphs 
+}
+
+\ProcessOptions
+
+% PACKAGE CONFIG
+% ---------------
+\hypersetup{
+  hidelinks = true,
+  colorlinks = false, % Colours links instead of ugly boxes
+  urlcolor = blue,    % Colour for external hyperlinks
+  linkcolor = blue,   % Colour of internal links
+  citecolor = red     % Colour of citations
+}
+
+\renewcommand\dateseparator{-}
+ 
+\renewcommand\Authsep{\\}
+\renewcommand\Authand{\\&}
+\renewcommand\AB@authnote[1]{} % "Fix" bug with affiliations
+
+% PAGE HEADERS
+% ------------
+
+\renewcommand{\headrulewidth}{0pt} 
+
+\fancyhead[LE,RO]{\thepage(\pageref{LastPage})}
+\fancyheadoffset[LE,RO]{12mm}
+\fancyhead[LO,RE,C]{}
+\fancyfoot[L,R,C]{}
+
+% REDEFINES
+% ---------
+
+% Redefines the title page
+\renewcommand\maketitle{%
+  \thispagestyle{plain}
+  \renewcommand{\thefootnote}{\fnsymbol{footnote}}
+  \begin{raggedright}
+  \par\bfseries\@university\\
+  \normalfont\@department
+  \end{raggedright}
+  \begin{center}%
+    \par\vskip1\baselineskip\par\noindent\Large{\@coursename}\normalfont\\%
+    \vskip0\baselineskip\par\noindent\Large{\@coursecode}\normalfont%
+    \par\vskip1\baselineskip\par\noindent\large\bfseries{\@title}\normalfont%
+    \par\vskip1\baselineskip\small\begin{tabular}{@{}ll}
+    \datename:&\@date\tabularnewline
+    \if\@empty\@revisiondate\else\revisiondatename:&\@revisiondate\tabularnewline\fi
+    \authorname:&\AB@authlist\tabularnewline
+    \if\@empty\@instructor\else\instructorname:&\@instructor\tabularnewline\fi
+    \end{tabular}\normalfont\par\vskip1\baselineskip\par
+  \end{center}%
+   
+  \setcounter{footnote}{0}%
+  \global\let\thanks\relax
+  \global\let\maketitle\relax
+  \global\let\@thanks\@empty
+  \global\let\@author\@empty
+  \global\let\@date\@empty
+  \global\let\@title\@empty
+  \global\let\title\relax
+  \global\let\author\relax
+  \global\let\date\relax
+  \global\let\and\relax
+  \renewcommand{\thefootnote}{\arabic{footnote}}}
+
+
+% Redefines the \section command
+\renewcommand{\section}{%
+ \@startsection%
+  {section}%
+  {1}%                          % Level
+  {0pt}%                        % Indentation
+  {-2\baselineskip}%            % Distance before the header (ignore
+                                % the `-` sign. It indicatas that the
+                                % indentation of the paragraph
+                                % following the section is
+                                % surpressed).
+  {0.5\baselineskip}%           % Distance after the header.
+  {\normalfont\large\bfseries}} % The font used for the header. Add 
+                                % \sffamily if you like a sans-serif
+                                % font.
+
+% Redefines the \subsection command
+\renewcommand{\subsection}{%
+ \@startsection%
+  {subsection}%
+  {2}%
+  {0pt}%
+  {\baselineskip}%
+  {0.25\baselineskip}%
+  {\normalfont\normalsize\bfseries}}
+
+% TABLE OF CONTENTS
+% ------------------------
+
+\def\@nodottedtocline#1#2#3#4#5{\ifnum #1>\c@tocdepth \else
+  \vskip \z@ \@plus.2\p@
+  {\leftskip #2\relax \rightskip \@tocrmarg \parfillskip -\rightskip
+    \parindent #2\relax\@afterindenttrue
+   \interlinepenalty\@M
+   \leavevmode
+   \@tempdima #3\relax
+   \advance\leftskip \@tempdima \null\hskip -\leftskip
+    {#4}\nobreak\leaders\hbox{$\m@th
+       \mkern \@dotsep mu\hbox{ }\mkern \@dotsep
+       mu$}\hfill \nobreak
+           \hb@xt@\@pnumwidth{%
+             \hfil\normalfont \normalcolor #5}\par}\fi}
+\renewcommand*\l@section{\@nodottedtocline{1}{1.5em}{2.3em}}
+\renewcommand*\l@subsection{\@nodottedtocline{2}{3.8em}{3.2em}}
+\renewcommand*\l@subsubsection{\@nodottedtocline{3}{7em}{4.1em}}
+\renewcommand*\l@figure{\@nodottedtocline{1}{1.5em}{2.3em}}
+
+% ABSTRACT
+% --------
+
+\renewenvironment{abstract}[1][Abstract]{
+  \vskip\baselineskip\begin{center}{\large\bfseries#1}\end{center}
+  \begin{adjustwidth}{15mm}{15mm}
+}{\end{adjustwidth}}
+
+% TABLES AND FIGURES
+% ------------------
+
+% Let tables have a continuous numbering and not reset by chapters
+\renewcommand\thetable{\mbox{\@arabic\c@table}}
+\renewcommand\thefigure{\mbox{\@arabic\c@figure}}
+
+% This makes (in my opinion) the table floats look nicer. 
+\renewcommand\floatc@ruled[2]{{\@fs@cfont #1} #2\par}
+\renewcommand\fs@ruled{\def\@fs@cfont{\bfseries}\let\@fs@capt\floatc@ruled
+  \def\@fs@pre{\hrule height1.5pt depth0pt \kern4pt}%
+  \def\@fs@post{\kern2pt\hrule height0.8pt\relax}%
+  \def\@fs@mid{\kern2pt\hrule height0.8pt\kern2pt}%
+  \let\@fs@iftopcapt\iftrue}
+\floatstyle{ruled} 
+\restylefloat{table}
+
+% Captions
+\renewcommand{\captionlabelfont}{\bfseries} % Font used for the name
+\renewcommand{\captionfont}{\small}         % Font size 
+\setlength{\captionmargin}{0.05\linewidth}  
