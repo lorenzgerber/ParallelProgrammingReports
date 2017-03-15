@@ -1,18 +1,31 @@
-/*******************************************
-MPI Life 1.0
-Copyright 2002, David Joiner and
-  The Shodor Education Foundation, Inc.
-Updated 2010, Andrew Fitz Gibbon and
-  The Shodor Education Foundation, Inc.
-*******************************************/
+const int DEFAULT_THROTTLE = 60;
+const int     DEFAULT_SIZE = 105;
+const int     DEFAULT_GENS = 10000;
+const double     INIT_PROB = 0.25;
 
-#ifndef BCCD_LIFE_H
-#define BCCD_LIFE_H
+struct life_t {
+	int  rank;
+	int  size;
+	int  throttle;
+	int  ncols;
+	int  nrows;
+	int  ** grid;
+	int  ** next_grid;
+	int  generations;
+};
 
-//#include <mpi.h>
+enum CELL_STATES {
+	DEAD = 0,
+	ALIVE
+};
 
-//#include "XLife.h"    // For display routines
-#include "Defaults.h" // For Life's constants
+// Cells become DEAD with more than UPPER_THRESH 
+// or fewer than LOWER_THRESH neighbors
+const int UPPER_THRESH = 3;
+const int LOWER_THRESH = 2;
+
+// Cells with exactly SPAWN_THRESH neighbors become ALIVE
+const int SPAWN_THRESH = 3;
 
 #include <time.h>     // For seeding random
 #include <stdlib.h>   // For malloc et al.
@@ -44,30 +57,25 @@ void             usage ();
 int init (struct life_t * life, int * c, char *** v) {
 	int argc          = *c;
 	char ** argv      = *v;
-	//life->rank        = 0;
 	life->size        = 1;
 	life->throttle    = -1;
 	life->ncols       = DEFAULT_SIZE;
 	life->nrows       = DEFAULT_SIZE;
 	life->generations = DEFAULT_GENS;
-	//life->do_display  = DEFAULT_DISP;
 	life->infile      = NULL;
 	life->outfile     = NULL;
 
-	//MPI_Init(&argc, &argv);
-	//MPI_Comm_rank(MPI_COMM_WORLD, &life->rank);
-	//MPI_Comm_size(MPI_COMM_WORLD, &life->size);
+	if (argc == 4){
+	  life->ncols = strtol(argv[1], (char**) NULL, 10);
+	  life->nrows = strtol(argv[2], (char**) NULL, 10);
+	  life->generations = strtol(argv[3], (char**) NULL, 10);
+	}
 
 	seed_random(life->rank);
-
-	parse_args(life, argc, argv);
-
 	init_grids(life);
 
-	//if (life->do_display) {
-	//	setupWindow(life);
-	//	moveWindow(life);
-	//}
+	return 0;
+
 }
 
 /*
@@ -123,30 +131,6 @@ void copy_bounds (struct life_t * life) {
 
 	int ** grid = life->grid;
 
-	//MPI_Status status;
-	//int left_rank  = (rank-1+size) % size;
-	//int right_rank = (rank+1) % size;
-
-	enum TAGS {
-		TOLEFT,
-		TORIGHT
-	};
-
-	// Some MPIs deadlock if a single process tries to communicate
-	// with itself
-	//if (size != 1) {
-		// copy sides to neighboring processes
-	//	MPI_Sendrecv(grid[1], nrows+2, MPI_INT, left_rank, TOLEFT,
-	//		grid[ncols+1], nrows+2, MPI_INT, right_rank, TOLEFT,
-	//		MPI_COMM_WORLD, &status);
-
-	//	MPI_Sendrecv(grid[ncols], nrows+2, MPI_INT, right_rank,
-	//		TORIGHT, grid[0], nrows+2, MPI_INT, left_rank,
-	//		TORIGHT, MPI_COMM_WORLD, &status);
-	//}
-
-	// Copy sides locally to maintain periodic boundaries
-	// when there's only one process
 	if (size == 1) {
 		for (j = 0; j < nrows+2; j++) {
 			grid[ncols+1][j] = grid[1][j];
@@ -181,21 +165,6 @@ void update_grid (struct life_t * life) {
 	for (i = 0; i < ncols+2; i++)
 		for (j = 0; j < nrows+2; j++)
 			grid[i][j] = next_grid[i][j];
-}
-
-/*
-	throttle()
-		Slows down the simulation to make X display easier to watch.
-		Has no effect when run with --no-display.
-*/
-void throttle (struct life_t * life) {
-	unsigned int delay;
-	int t = life->throttle;
-
-	if (life->do_display && t != -1) {
-		delay = 1000000 * 1/t;
-		usleep(delay);
-	}
 }
 
 /*
@@ -349,10 +318,6 @@ void seed_random (int rank) {
 void cleanup (struct life_t * life) {
 	write_grid(life);
 	free_grids(life);
-
-	//if (life->do_display)
-	//	free_video(life);
-
 	//MPI_Finalize();
 }
 
@@ -365,82 +330,5 @@ void usage () {
 	printf("  -c|--columns number   Number of columns in grid. Default: %d\n", DEFAULT_SIZE);
 	printf("  -r|--rows number      Number of rows in grid. Default: %d\n", DEFAULT_SIZE);
 	printf("  -g|--gens number      Number of generations to run. Default: %d\n", DEFAULT_GENS);
-	printf("  -i|--input filename   Input file. See README for format. Default: none.\n");
-	printf("  -o|--output filename  Output file. Default: none.\n");
-	printf("  -h|--help             This help page.\n");
-	printf("  -t[N]|--throttle[=N]  Throttle display to N generations/second. Default: %d\n",
-		DEFAULT_THROTTLE);
-	printf("  -x|--display          Use a graphical display.\n");
-	printf("  --no-display          Do not use a graphical display.\n"); 
-	//printf("     Default: %s\n",
-	//	(DEFAULT_DISP ? "do display" : "no display"));
-	printf("\nSee README for more information.\n\n");
-
 	exit(EXIT_FAILURE);
 }
-
-/*
-	parse_args()
-		Make command line arguments useful
-*/
-void parse_args (struct life_t * life, int argc, char ** argv) {
-	int opt       = 0;
-	int opt_index = 0;
-
-	for (;;) {
-		opt = getopt_long(argc, argv, opts, long_opts, &opt_index);
-
-		if (opt == -1) break;
-
-		switch (opt) {
-			case 0:
-				break;
-			case 'c':
-				life->ncols = strtol(optarg, (char**) NULL, 10);
-				break;
-			case 'r':
-				life->nrows = strtol(optarg, (char**) NULL, 10);
-				break;
-			case 'g':
-				life->generations = strtol(optarg, (char**) NULL, 10);
-				break;
-			case 'x':
-				life->do_display = true;
-				break;
-			case 'i':
-				life->infile = optarg;
-				break;
-			case 'o':
-				life->outfile = optarg;
-				break;
-			case 't':
-				if (optarg != NULL)
-					life->throttle = strtol(optarg, (char**) NULL, 10);
-				else
-					life->throttle = DEFAULT_THROTTLE;
-				break;
-			case 'h':
-			case '?':
-				usage();
-				break;
-
-			default:
-				break;
-		}
-	}
-
-	// Backwards compatible argument parsing
-	if (optind == 1) {
-		if (argc > 1)
-			life->nrows       = strtol(argv[1], (char**) NULL, 10);
-		if (argc > 2)
-			life->ncols       = strtol(argv[2], (char**) NULL, 10);
-		if (argc > 3)
-			life->generations = strtol(argv[3], (char**) NULL, 10);
-		if (argc > 4)
-			// 0 interpreted as false, all other values true
-			life->do_display  = strtol(argv[4], (char**) NULL, 10);
-	}
-}
-
-#endif
