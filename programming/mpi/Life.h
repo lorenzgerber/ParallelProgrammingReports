@@ -19,6 +19,7 @@ Updated 2010, Andrew Fitz Gibbon and
 #include <stdbool.h>  // For true/false
 #include <getopt.h>   // For argument processing
 #include <stdio.h>    // For file i/o
+#include <unistd.h>
 #include "timer.h"    // For Benchmarking, Library from Coursebook
 
 int               init (struct life_t * life, int * c, char *** v);
@@ -62,6 +63,8 @@ int init (struct life_t * life, int * c, char *** v) {
 	parse_args(life, argc, argv);
 
 	init_grids(life);
+
+	return 0;
 }
 
 /*
@@ -111,6 +114,7 @@ void eval_rules (struct life_t * life) {
 void copy_bounds (struct life_t * life) {
 	int i,j;
 
+	int rank  = life->rank;
 	int size  = life->size;
 	int ncols = life->ncols;
 	int nrows = life->nrows;
@@ -182,6 +186,7 @@ void update_grid (struct life_t * life) {
 		Slows down the simulation to make X display easier to watch.
 		Has no effect when run with --no-display.
 */
+/*
 void throttle (struct life_t * life) {
 	unsigned int delay;
 	int t = life->throttle;
@@ -190,7 +195,7 @@ void throttle (struct life_t * life) {
 		delay = 1000000 * 1/t;
 		usleep(delay);
 	}
-}
+	}*/
 
 /*
 	allocate_grids()
@@ -306,7 +311,7 @@ void free_grids (struct life_t * life) {
 		Generate a random double between 0 and 1.
 */
 double rand_double() {
-	return (double)random()/(double)RAND_MAX;
+	return (double)rand()/(double)RAND_MAX;
 }
 
 /*
@@ -333,7 +338,7 @@ void randomize_grid (struct life_t * life, double prob) {
 		process's rank and time. Multiplier is arbitrary.
 */
 void seed_random (int rank) {
-	srandom(time(NULL) + 100*rank);
+	srand(time(NULL) + 100*rank);
 }
 
 /*

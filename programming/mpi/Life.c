@@ -35,7 +35,7 @@ int main(int argc, char ** argv) {
 
 		update_grid(&life);
 
-		throttle(&life);
+		///throttle(&life);
 	}
 	
 	GET_TIME(finish);
