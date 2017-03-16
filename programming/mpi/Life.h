@@ -192,7 +192,6 @@ void allocate_grids (struct life_t * life) {
 		are DEAD.
 */
 void init_grids (struct life_t * life) {
-  FILE * fd;
   int i,j;
 
   allocate_grids(life);
