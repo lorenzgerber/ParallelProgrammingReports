@@ -15,7 +15,7 @@ Updated 2010, Andrew Fitz Gibbon and
 
 static const char * opts = "c:r:g:i:o:t::xh?";
 static const struct option long_opts[] = {
-  //{ "columns", required_argument, NULL, 'c' },
+        { "columns", required_argument, NULL, 'c' },
 	{ "rows", required_argument, NULL, 'r' },
 	{ "gens", required_argument, NULL, 'g' },
 	{ "no-display", no_argument, NULL, 0 },

@@ -1,17 +1,15 @@
-const int DEFAULT_THROTTLE = 60;
 const int     DEFAULT_SIZE = 105;
 const int     DEFAULT_GENS = 10000;
 const double     INIT_PROB = 0.25;
 
 struct life_t {
-	int  rank;
-	int  size;
-	int  throttle;
-	int  ncols;
-	int  nrows;
-	int  ** grid;
-	int  ** next_grid;
-	int  generations;
+  int  rank;
+  int  ncols;
+  int  nrows;
+  int  ** grid;
+  int  ** next_grid;
+  int  generations;
+  char * outfile;
 };
 
 enum CELL_STATES {
@@ -30,7 +28,6 @@ const int SPAWN_THRESH = 3;
 #include <time.h>     // For seeding random
 #include <stdlib.h>   // For malloc et al.
 #include <stdbool.h>  // For true/false
-#include <getopt.h>   // For argument processing
 #include <stdio.h>    // For file i/o
 #include "timer.h"    // For Benchmarking, Library from Coursebook
 
@@ -38,16 +35,13 @@ int               init (struct life_t * life, int * c, char *** v);
 void        eval_rules (struct life_t * life);
 void       copy_bounds (struct life_t * life);
 void       update_grid (struct life_t * life);
-void          throttle (struct life_t * life);
 void    allocate_grids (struct life_t * life);
 void        init_grids (struct life_t * life);
-void        write_grid (struct life_t * life);
 void        free_grids (struct life_t * life);
 double     rand_double ();
 void    randomize_grid (struct life_t * life, double prob);
 void       seed_random (int rank);
 void           cleanup (struct life_t * life);
-void        parse_args (struct life_t * life, int argc, char ** argv);
 void             usage ();
 
 /*
@@ -57,18 +51,16 @@ void             usage ();
 int init (struct life_t * life, int * c, char *** v) {
 	int argc          = *c;
 	char ** argv      = *v;
-	life->size        = 1;
-	life->throttle    = -1;
 	life->ncols       = DEFAULT_SIZE;
 	life->nrows       = DEFAULT_SIZE;
 	life->generations = DEFAULT_GENS;
-	life->infile      = NULL;
 	life->outfile     = NULL;
 
-	if (argc == 4){
+	if (argc >= 4){
 	  life->ncols = strtol(argv[1], (char**) NULL, 10);
 	  life->nrows = strtol(argv[2], (char**) NULL, 10);
 	  life->generations = strtol(argv[3], (char**) NULL, 10);
+	  life->outfile   = argv[4];
 	}
 
 	seed_random(life->rank);
@@ -125,18 +117,16 @@ void eval_rules (struct life_t * life) {
 void copy_bounds (struct life_t * life) {
 	int i,j;
 
-	int size  = life->size;
 	int ncols = life->ncols;
 	int nrows = life->nrows;
 
 	int ** grid = life->grid;
 
-	if (size == 1) {
-		for (j = 0; j < nrows+2; j++) {
-			grid[ncols+1][j] = grid[1][j];
-			grid[0][j] = grid[ncols][j];
-		}
+	for (j = 0; j < nrows+2; j++) {
+		grid[ncols+1][j] = grid[1][j];
+		grid[0][j] = grid[ncols][j];
 	}
+	
 
 	// copy corners
 	grid[0][0]             = grid[0][nrows];
@@ -191,20 +181,8 @@ void allocate_grids (struct life_t * life) {
 		are DEAD.
 */
 void init_grids (struct life_t * life) {
-	FILE * fd;
+
 	int i,j;
-
-	if (life->infile != NULL) {
-		if ((fd = fopen(life->infile, "r")) == NULL) {
-			perror("Failed to open file for input");
-			exit(EXIT_FAILURE);
-		}
-
-		if (fscanf(fd, "%d %d\n", &life->ncols, &life->nrows) == EOF) {
-			printf("File must at least define grid dimensions!\nExiting.\n");
-			exit(EXIT_FAILURE);
-		}
-	}
 
 	allocate_grids(life);
 
@@ -215,16 +193,8 @@ void init_grids (struct life_t * life) {
 		}
 	}
 
-	if (life->infile != NULL) {
-		while (fscanf(fd, "%d %d\n", &i, &j) != EOF) {
-			life->grid[i][j]      = ALIVE;
-			life->next_grid[i][j] = ALIVE;
-		}
-		
-		fclose(fd);
-	} else {
-		randomize_grid(life, INIT_PROB);
-	}
+	randomize_grid(life, INIT_PROB);
+
 }
 
 /*
@@ -245,15 +215,16 @@ void write_grid (struct life_t * life) {
 			exit(EXIT_FAILURE);
 		}
 
-		fprintf(fd, "%d %d\n", ncols, nrows);
+		fprintf(fd, "%d\n%d\n", ncols, nrows);
 
 		for (i = 1; i <= ncols; i++) {
 			for (j = 1; j <= nrows; j++) {
 				if (grid[i][j] != DEAD)
-					fprintf(fd, "%d %d\n", i, j);
+					fprintf(fd, "1\n");
+				else
+				  fprintf(fd, "0\n");
 			}
 		}
-
 		fclose(fd);
 	}
 }
