@@ -37,7 +37,7 @@ int init (struct life_t * life, int * c, char *** v) {
   life->ncols       = DEFAULT_SIZE;
   life->nrows       = DEFAULT_SIZE;
   life->generations = DEFAULT_GENS;
-  life->infile      = NULL;
+  life->outfile      = NULL;
 
   MPI_Init(&argc, &argv);
   MPI_Comm_rank(MPI_COMM_WORLD, &life->rank);
