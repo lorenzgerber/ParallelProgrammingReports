@@ -43,9 +43,15 @@ int init (struct life_t * life, int * c, char *** v) {
   MPI_Comm_rank(MPI_COMM_WORLD, &life->rank);
   MPI_Comm_size(MPI_COMM_WORLD, &life->size);
 
-  seed_random(life->rank);
+  if (argc >= 4){
+    life->ncols = strtol(argv[1], (char**) NULL, 10);
+    life->nrows = strtol(argv[2], (char**) NULL, 10);
+    life->generations = strtol(argv[3], (char**) NULL, 10);
+    life->outfile   = argv[4];
+  }
 
-  parse_args(life, argc, argv);
+  seed_random(life->rank);
+  //parse_args(life, argc, argv);
 
   init_grids(life);
 
