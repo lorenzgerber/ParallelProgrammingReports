@@ -6,7 +6,7 @@ int main(int argc, char ** argv) {
   double start, finish;
   struct life_t life;
 
-  //init(&life, &argc, &argv);
+  init(&life, &argc, &argv);
 
   GET_TIME(start);
 
