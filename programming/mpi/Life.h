@@ -7,13 +7,6 @@
 #include <unistd.h>
 #include "timer.h"    // For Benchmarking, Library from Coursebook
 
-
-// Default parameters for the simulation
-const int     DEFAULT_SIZE = 105;
-const int     DEFAULT_GENS = 10000;
-const double     INIT_PROB = 0.25;
-
-// All the data needed by an instance of Life
 struct life_t {
   int  rank;
   int  size;
@@ -31,13 +24,12 @@ enum CELL_STATES {
 	ALIVE
 };
 
-// Cells become DEAD with more than UPPER_THRESH 
-// or fewer than LOWER_THRESH neighbors
-const int UPPER_THRESH = 3;
-const int LOWER_THRESH = 2;
-
-// Cells with exactly SPAWN_THRESH neighbors become ALIVE
-const int SPAWN_THRESH = 3;
+const int     DEFAULT_SIZE = 105;
+const int     DEFAULT_GENS = 10000;
+const double     INIT_PROB = 0.25;
+const int     UPPER_THRESH = 3;
+const int     LOWER_THRESH = 2;
+const int     SPAWN_THRESH = 3;
 
 int               init (struct life_t * life, int * c, char *** v);
 void        eval_rules (struct life_t * life);
@@ -51,13 +43,13 @@ double     rand_double ();
 void    randomize_grid (struct life_t * life, double prob);
 void       seed_random (int rank);
 void           cleanup (struct life_t * life);
-void        parse_args (struct life_t * life, int argc, char ** argv);
 void             usage ();
 
-/*
-	init_env()
-		Initialize runtime environment.
-*/
+/**
+ * init_env()
+ * Initializes runtime environment.
+ *
+ */
 int init (struct life_t * life, int * c, char *** v) {
   int argc          = *c;
   char ** argv      = *v;
@@ -85,11 +77,11 @@ int init (struct life_t * life, int * c, char *** v) {
   return 0;
 }
 
-/*
-	eval_rules()
-		Evaluate the rules of Life for each cell; count
-		neighbors and update current state accordingly.
-*/
+/**
+ *  eval_rules()
+ *  Evaluate the rules of Life for each cell; count
+ *  neighbors and update current state accordingly.
+ */
 void eval_rules (struct life_t * life) {
   int i,j,k,l,neighbors;
 
@@ -119,15 +111,15 @@ void eval_rules (struct life_t * life) {
   }
 }
 
-/*
-	copy_bounds()
-		Copies sides, top, and bottom to their respective locations.
-		All boundaries are considered periodic.
-
-		In the MPI model, processes are aligned side-by-side.
-		Left and right sides are sent to neighboring processes.
-		Top and bottom are copied from the process's own grid.
-*/
+/**
+ *  copy_bounds()
+ *  Copies sides, top, and bottom to their respective locations.
+ *  All boundaries are considered periodic.
+ *
+ *  In the MPI model, processes are aligned side-by-side.
+ *  Left and right sides are sent to neighboring processes.
+ *  Top and bottom are copied from the process's own grid.
+ */
 void copy_bounds (struct life_t * life) {
   int i,j;
 
@@ -147,10 +139,7 @@ void copy_bounds (struct life_t * life) {
     TORIGHT	
   };
 
-  // Some MPIs deadlock if a single process tries to communicate
-  // with itself
   if (size != 1) {
-    // copy sides to neighboring processes
     MPI_Sendrecv(grid[1], nrows+2, MPI_INT, left_rank, TOLEFT,
 		 grid[ncols+1], nrows+2, MPI_INT, right_rank, TOLEFT,
 			
@@ -185,10 +174,10 @@ void copy_bounds (struct life_t * life) {
   }
 }
 
-/*
-	update_grid()
-		Copies temporary values from next_grid into grid.
-*/
+/**
+ *  update_grid()
+ *  Copies temporary values from next_grid into grid.
+ */
 void update_grid (struct life_t * life) {
   int i,j;
   int ncols = life->ncols;
@@ -201,10 +190,10 @@ void update_grid (struct life_t * life) {
       grid[i][j] = next_grid[i][j];
 }
 
-/*
-	allocate_grids()
-		Allocates memory for a 2D array of integers.
-*/
+/**
+ *  allocate_grids()
+ *  Allocates memory for a 2D array of integers.
+ */
 void allocate_grids (struct life_t * life) {
   int i;
   int ncols = life->ncols;
@@ -219,11 +208,11 @@ void allocate_grids (struct life_t * life) {
   }
 }
 
-/*
-	init_grids()
-		Initialize cells based on input file, otherwise all cells
-		are DEAD.
-*/
+/**
+ *  init_grids()
+ *  Initialize cells based on input file, otherwise all cells
+ *  are DEAD.
+ */
 void init_grids (struct life_t * life) {
   int i,j;
 
@@ -240,11 +229,11 @@ void init_grids (struct life_t * life) {
 
 }
 
-/*
-	write_grid()
-		Dumps the current state of life.grid to life.outfile.
-		Only outputs the coordinates of !DEAD cells.
-*/
+/**
+ *  write_grid()
+ *  Dumps the current state of life.grid to life.outfile.
+ *  Only outputs the coordinates of !DEAD cells.
+ */
 void write_grid (struct life_t * life) {
   FILE * fd;
   int i,j;
@@ -270,11 +259,11 @@ void write_grid (struct life_t * life) {
   }
 }
 
-/*
-	free_grids()
-		Frees memory used by an array that was allocated 
-		with allocate_grids().
-*/
+/**
+ *  free_grids()
+ *  Frees memory used by an array that was allocated 
+ *  with allocate_grids().
+ */
 void free_grids (struct life_t * life) {
 	
   int i;
@@ -289,19 +278,19 @@ void free_grids (struct life_t * life) {
   free(life->next_grid);
 }
 
-/*
-	rand_double()
-		Generate a random double between 0 and 1.
-*/
+/**
+ *  rand_double()
+ *  Generate a random double between 0 and 1.
+ */
 double rand_double() {
   return (double)rand()/(double)RAND_MAX;
 }
 
-/*
-	randomize_grid()
-		Initialize a Life grid. Each cell has a [prob] chance
-		of starting alive.
-*/
+/**
+ *  randomize_grid()
+ *  Initialize a Life grid. Each cell has a [prob] chance
+ *  of starting alive.
+ */
 void randomize_grid (struct life_t * life, double prob) {
   int i,j;
   int ncols = life->ncols;
@@ -315,19 +304,19 @@ void randomize_grid (struct life_t * life, double prob) {
   }
 }
 
-/*
-	seed_random()
-		Seed the random number generator based on the
-		process's rank and time. Multiplier is arbitrary.
-*/
+/**
+ *  seed_random()
+ *  Seed the random number generator based on the
+ *  process's rank and time. Multiplier is arbitrary.
+ */
 void seed_random (int rank) {
   srand(time(NULL) + 100*rank);
 }
 
-/*
-	cleanup()
-		Prepare process for a clean termination.
-*/
+/**
+ *  cleanup()
+ *  Prepare process for a clean termination.
+ */
 void cleanup (struct life_t * life) {
   if (life->rank == 0){
     write_grid(life);
@@ -337,10 +326,10 @@ void cleanup (struct life_t * life) {
   MPI_Finalize();
 }
 
-/*
-	usage()
-		Describes Life's command line option
-*/
+/**
+ *  usage()
+ *  Describes Life's command line option
+ */
 void usage () {
   printf("\nUsage: Life [options]\n");
   printf("  -c|--columns number   Number of columns in grid. Default: %d\n", DEFAULT_SIZE);
