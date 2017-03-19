@@ -15,19 +15,15 @@ const double     INIT_PROB = 0.25;
 
 // All the data needed by an instance of Life
 struct life_t {
-	int  rank;
-	int  size;
-	int  throttle;
-	int  ncols;
-	int  nrows;
-	int  ** grid;
-	int  ** next_grid;
-	bool do_display;
-	int  generations;
-	char * infile;
-	char * outfile;
-
-	struct display_t disp;
+  int  rank;
+  int  size;
+  int  ncols;
+  int  nrows;
+  int  ** grid;
+  int  ** next_grid;
+  bool do_display;
+  int  generations;
+  char * outfile;
 };
 
 enum CELL_STATES {

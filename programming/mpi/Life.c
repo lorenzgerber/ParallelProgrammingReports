@@ -1,5 +1,4 @@
 #include "Life.h"
-#include "Defaults.h" // For Life's constants
 
 int main(int argc, char ** argv) {
   int count;
