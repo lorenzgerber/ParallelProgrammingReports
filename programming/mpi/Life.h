@@ -13,7 +13,6 @@ int               init (struct life_t * life, int * c, char *** v);
 void        eval_rules (struct life_t * life);
 void       copy_bounds (struct life_t * life);
 void       update_grid (struct life_t * life);
-void          throttle (struct life_t * life);
 void    allocate_grids (struct life_t * life);
 void        init_grids (struct life_t * life);
 void        write_grid (struct life_t * life);
@@ -302,7 +301,10 @@ void seed_random (int rank) {
 		Prepare process for a clean termination.
 */
 void cleanup (struct life_t * life) {
-  write_grid(life);
+  if (life->rank == 0){
+    write_grid(life);
+  }
+
   free_grids(life);
   MPI_Finalize();
 }
