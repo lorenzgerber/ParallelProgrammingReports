@@ -1,13 +1,47 @@
+#include <stddef.h>
 #include <mpi.h>
-#include "Defaults.h" // For Life's constants
-
 #include <time.h>     // For seeding random
 #include <stdlib.h>   // For malloc et al.
 #include <stdbool.h>  // For true/false
-#include <getopt.h>   // For argument processing
 #include <stdio.h>    // For file i/o
 #include <unistd.h>
 #include "timer.h"    // For Benchmarking, Library from Coursebook
+
+
+// Default parameters for the simulation
+const int     DEFAULT_SIZE = 105;
+const int     DEFAULT_GENS = 10000;
+const double     INIT_PROB = 0.25;
+
+// All the data needed by an instance of Life
+struct life_t {
+	int  rank;
+	int  size;
+	int  throttle;
+	int  ncols;
+	int  nrows;
+	int  ** grid;
+	int  ** next_grid;
+	bool do_display;
+	int  generations;
+	char * infile;
+	char * outfile;
+
+	struct display_t disp;
+};
+
+enum CELL_STATES {
+	DEAD = 0,
+	ALIVE
+};
+
+// Cells become DEAD with more than UPPER_THRESH 
+// or fewer than LOWER_THRESH neighbors
+const int UPPER_THRESH = 3;
+const int LOWER_THRESH = 2;
+
+// Cells with exactly SPAWN_THRESH neighbors become ALIVE
+const int SPAWN_THRESH = 3;
 
 int               init (struct life_t * life, int * c, char *** v);
 void        eval_rules (struct life_t * life);
@@ -50,8 +84,6 @@ int init (struct life_t * life, int * c, char *** v) {
   }
 
   seed_random(life->rank);
-  //parse_args(life, argc, argv);
-
   init_grids(life);
 
   return 0;
@@ -320,67 +352,4 @@ void usage () {
   printf("  -g|--gens number      Number of generations to run. Default: %d\n", DEFAULT_GENS);
   printf("  -o|--output filename  Output file. Default: none.\n");
   exit(EXIT_FAILURE);
-}
-
-/*
-	parse_args()
-		Make command line arguments useful
-*/
-void parse_args (struct life_t * life, int argc, char ** argv) {
-  int opt       = 0;
-  int opt_index = 0;
-
-  for (;;) {
-		
-    opt = getopt_long(argc, argv, opts, long_opts, &opt_index);	
-    if (opt == -1) break;
-
-    switch (opt) {
-    case 0:			
-      break;		
-    case 'c':
-      life->ncols = strtol(optarg, (char**) NULL, 10);
-      break;
-    case 'r':
-      life->nrows = strtol(optarg, (char**) NULL, 10);
-    break;
-    case 'g':
-      life->generations = strtol(optarg, (char**) NULL, 10);
-      break;
-    case 'x':
-      life->do_display = true;
-      break;
-    case 'i':
-      life->infile = optarg;
-      break;
-    case 'o':
-      life->outfile = optarg;
-      break;
-    case 't':
-      if (optarg != NULL)
-      life->throttle = strtol(optarg, (char**) NULL, 10);
-    else
-      life->throttle = DEFAULT_THROTTLE;
-      break;
-    case 'h':
-    case '?':
-      usage();
-      break;
-    default:
-      break;
-    }
-  }
-
-  // Backwards compatible argument parsing
-  if (optind == 1) {
-    if (argc > 1)
-      life->nrows       = strtol(argv[1], (char**) NULL, 10);
-    if (argc > 2)
-      life->ncols       = strtol(argv[2], (char**) NULL, 10);
-    if (argc > 3)
-      life->generations = strtol(argv[3], (char**) NULL, 10);
-    if (argc > 4)
-      // 0 interpreted as false, all other values true
-      life->do_display  = strtol(argv[4], (char**) NULL, 10);
-  }
 }

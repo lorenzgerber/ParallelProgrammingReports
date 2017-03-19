@@ -1,3 +1,9 @@
+#include <time.h>     // For seeding random
+#include <stdlib.h>   // For malloc et al.
+#include <stdbool.h>  // For true/false
+#include <stdio.h>    // For file i/o
+#include "timer.h"    // For Benchmarking, Library from Coursebook
+
 const int     DEFAULT_SIZE = 105;
 const int     DEFAULT_GENS = 10000;
 const double     INIT_PROB = 0.25;
@@ -24,12 +30,6 @@ const int LOWER_THRESH = 2;
 
 // Cells with exactly SPAWN_THRESH neighbors become ALIVE
 const int SPAWN_THRESH = 3;
-
-#include <time.h>     // For seeding random
-#include <stdlib.h>   // For malloc et al.
-#include <stdbool.h>  // For true/false
-#include <stdio.h>    // For file i/o
-#include "timer.h"    // For Benchmarking, Library from Coursebook
 
 int               init (struct life_t * life, int * c, char *** v);
 void        eval_rules (struct life_t * life);
