@@ -14,6 +14,7 @@ struct life_t {
   int  nrows;
   int  ** grid;
   int  ** next_grid;
+  //int  ** result_grid;
   bool do_display;
   int  generations;
   char * outfile;
@@ -64,11 +65,18 @@ int init (struct life_t * life, int * c, char *** v) {
   MPI_Comm_rank(MPI_COMM_WORLD, &life->rank);
   MPI_Comm_size(MPI_COMM_WORLD, &life->size);
 
-  if (argc >= 4){
-    life->ncols = strtol(argv[1], (char**) NULL, 10);
-    life->nrows = strtol(argv[2], (char**) NULL, 10);
-    life->generations = strtol(argv[3], (char**) NULL, 10);
-    life->outfile   = argv[4];
+  if (argc == 4){
+    if(strtol(argv[1], (char**) NULL, 10)%life->size !=0){
+      printf("the size n of the square has to be even divisible by the rank of nodes");
+      exit(1);
+    }
+    life->ncols = strtol(argv[1], (char**) NULL, 10)/life->size;
+    life->nrows = strtol(argv[1], (char**) NULL, 10);
+    life->generations = strtol(argv[2], (char**) NULL, 10);
+    life->outfile   = argv[3];
+  } else {
+    printf("usage: Life [n_size] [generations] [outfile]");
+    exit(1);
   }
 
   seed_random(life->rank);
@@ -201,11 +209,21 @@ void allocate_grids (struct life_t * life) {
 
   life->grid      = (int **) malloc(sizeof(int *) * (ncols+2));
   life->next_grid = (int **) malloc(sizeof(int *) * (ncols+2));
+  if(life->rank == 0){
+    life->result_grid = (int **) malloc(sizeof(int *) * ncols * life->size);
+  }
 
   for (i = 0; i < ncols+2; i++) {	
     life->grid[i]      = (int *) malloc(sizeof(int) * (nrows+2));
     life->next_grid[i] = (int *) malloc(sizeof(int) * (nrows+2));
   }
+
+  if (life->rank == 0){
+    for (i = 0; i < ncols * life->size; i++){
+      life->result_grid[i] = (int *) malloc(sizeof(int) * nrows);
+    }
+  }
+
 }
 
 /**
@@ -224,7 +242,7 @@ void init_grids (struct life_t * life) {
       life->next_grid[i][j] = DEAD;
     }
   }
- 
+   
   randomize_grid(life, INIT_PROB);
 
 }
@@ -271,11 +289,13 @@ void free_grids (struct life_t * life) {
 
   for (i = 0; i < ncols+2; i++) {
     free(life->grid[i]);
-    free(life->next_grid[i]);	
+    free(life->next_grid[i]);
+    //free(life->result_grid[i]);
   }
 
   free(life->grid);
   free(life->next_grid);
+  //free(life->result_grid);
 }
 
 /**

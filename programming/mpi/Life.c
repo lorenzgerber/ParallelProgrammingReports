@@ -7,7 +7,9 @@ int main(int argc, char ** argv) {
 
   init(&life, &argc, &argv);
 
-  GET_TIME(start);
+  MPI_Barrier(MPI_COMM_WORLD);
+  start = MPI_Wtime();
+  
 
   for (count = 0; count < life.generations; count++) {
 
@@ -16,7 +18,7 @@ int main(int argc, char ** argv) {
     update_grid(&life);
 }
 
-  GET_TIME(finish);
+  finish = MPI_Wtime();
   printf("%e\n", finish-start);
 
   cleanup(&life);
