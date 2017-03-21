@@ -14,9 +14,10 @@ struct life_t {
   int  nrows;
   int  ** grid;
   int  ** next_grid;
-  int  ** result_grid;
+  int  * transfer_grid;
   bool do_display;
   int  generations;
+  char * infile;
   char * outfile;
 };
 
@@ -45,7 +46,6 @@ void    randomize_grid (struct life_t * life, double prob);
 void       seed_random (int rank);
 void           cleanup (struct life_t * life);
 void      collect_data (struct life_t * life);
-void             usage ();
 
 /**
  * init_env()
@@ -60,13 +60,14 @@ int init (struct life_t * life, int * c, char *** v) {
   life->ncols       = DEFAULT_SIZE;
   life->nrows       = DEFAULT_SIZE;
   life->generations = DEFAULT_GENS;
-  life->outfile      = NULL;
+  life->outfile     = NULL;
+  life->infile      = NULL;
 
   MPI_Init(&argc, &argv);
   MPI_Comm_rank(MPI_COMM_WORLD, &life->rank);
   MPI_Comm_size(MPI_COMM_WORLD, &life->size);
 
-  if (argc == 4){
+  if (argc >= 4){
     if(strtol(argv[1], (char**) NULL, 10)%life->size !=0){
       printf("the size n of the square has to be even divisible by the rank of nodes");
       exit(1);
@@ -75,8 +76,12 @@ int init (struct life_t * life, int * c, char *** v) {
     life->nrows = strtol(argv[1], (char**) NULL, 10);
     life->generations = strtol(argv[2], (char**) NULL, 10);
     life->outfile   = argv[3];
+    if(argc == 5){
+      life->infile = argv[4];
+    }
+    
   } else {
-    printf("usage: Life [n_size] [generations] [outfile]");
+    printf("usage: Life [n_size] [generations] [outfile] [infile]");
     exit(1);
   }
 
@@ -210,32 +215,19 @@ void allocate_grids (struct life_t * life) {
   int * data_grid;
   int * data_next;
 
-  life->grid      = (int **) malloc(sizeof(int *) * (ncols+2));
-  life->next_grid = (int **) malloc(sizeof(int *) * (ncols+2));
+  // allocating the transfer array
   if(life->rank == 0){
-    life->result_grid = (int **) malloc(sizeof(int *) * (ncols) * life->size);
+    life->transfer_grid = (int *) malloc(sizeof(int ) * (ncols + 2) * life->size * (nrows+2));
   }
 
   // main grids
-  //for (i = 0; i < ncols+2; i++) {	
-  //  life->grid[i]      = (int *) malloc(sizeof(int) * (nrows+2));
-  //  life->next_grid[i] = (int *) malloc(sizeof(int) * (nrows+2));
-  //}
-
-  // test new grid
+  life->grid      = (int **) malloc(sizeof(int *) * (ncols+2));
+  life->next_grid = (int **) malloc(sizeof(int *) * (ncols+2));
   data_grid = malloc((nrows+2)*(ncols+2)*sizeof(int));
   data_next = malloc((nrows+2)*(ncols+2)*sizeof(int));
   for (i = 0; i < ncols+2; i++){
     life->grid[i] = &(data_grid[i*(nrows+2)]);
     life->next_grid[i] = &(data_next[i*(nrows+2)]);		      
-  }
-
-
-  // result grid
-  if (life->rank == 0){
-    for (i = 0; i < (ncols) * life->size; i++){
-      life->result_grid[i] = (int *) malloc(sizeof(int) * nrows);
-    }
   }
 
 }
@@ -247,8 +239,23 @@ void allocate_grids (struct life_t * life) {
  */
 void init_grids (struct life_t * life) {
   int i,j;
+  int index;
+  FILE * fd;
+
+  if (life->infile != NULL && life->rank == 0) {
+    if ((fd = fopen(life->infile, "r")) == NULL) {
+      perror("Failed to open file for input");
+      exit(EXIT_FAILURE);
+    }
+
+    if (fscanf(fd, "%d %d\n", &life->ncols, &life->nrows) == EOF) {
+      printf("File must at least define grid dimensions!\nExiting.\n");
+      exit(EXIT_FAILURE);
+    }
+  }
 
   allocate_grids(life);
+
 
   for (i = 0; i < life->ncols+2; i++) {
     for (j = 0; j < life->nrows+2; j++) {
@@ -256,6 +263,28 @@ void init_grids (struct life_t * life) {
       life->next_grid[i][j] = DEAD;
     }
   }
+
+  
+  if (life->infile != NULL && life->rank == 0) {
+    while (fscanf(fd, "%d %d\n", &i, &j) != EOF) {
+      //index = (i/(life->ncols/life->size))*(life->ncols/life->size+2)*(life->nrows+2)+(life->nrows+2)+(((i-1)%(life->ncols/life->size))*(life->nrows+2))+(j+1);
+      //index = (i/(life->ncols/life->size))*(life->ncols/life->size+2)*(life->nrows+2)+(life->nrows+2)+(((i-1)%(life->ncols/life->size))*(life->nrows+2))+(j+1);
+      //index = (i/(life->ncols/life->size))*(life->ncols/life->size+2)*(life->nrows+2);
+      //index = (life->nrows+2);
+      index = ((i-1)%(life->ncols/life->size))*(life->nrows+2); 
+      printf("index = %d %d %d \n", i, j, index);
+      //life->transfer_grid[index] = ALIVE;
+      
+      //life->grid[i][j]      = ALIVE;
+      //life->next_grid[i][j] = ALIVE;
+    }
+
+    fclose(fd);
+  } else {
+    randomize_grid(life, INIT_PROB);
+  }
+
+  
    
   randomize_grid(life, INIT_PROB);
 
@@ -268,11 +297,10 @@ void init_grids (struct life_t * life) {
  */
 void write_grid (struct life_t * life) {
   FILE * fd;
-  int i,j;
+  int i,j,k;
+  int col, row, index;
   int ncols   = life->ncols;
   int nrows   = life->nrows;
-  int ** grid = life->grid;
-
 
 
   if (life->outfile != NULL) {       
@@ -281,15 +309,24 @@ void write_grid (struct life_t * life) {
       exit(EXIT_FAILURE);		
     }
 	
-    fprintf(fd, "%d %d\n", ncols, nrows);
+    fprintf(fd, "%d %d\n", ncols*life->size, nrows);
 
-    for (i = 0; i <= ncols; i++) {
-      for (j = 1; j <= nrows; j++) {
-	printf("i j  data = %d %d %d\n", i , j, grid[i][j]);
-	if (grid[i][j] != DEAD)
-	  fprintf(fd, "%d %d\n", i, j);		
-      }	
-    }	
+
+    for(i = 0; i < life->size; i++){
+      for( j = 1; j < ncols + 1; j++){
+	for( k = 1; k < nrows + 1; k++){
+
+	  index = i*(nrows+2)*(ncols+2)+j*(nrows+2)+k;
+	  col = i*ncols+j-1;
+	  row = k-1;
+	    
+	  if (life->transfer_grid[index] != DEAD){
+	    fprintf(fd, "%d %d\n", col, row);
+	  }	  
+	}
+      }
+    }
+    
     fclose(fd);
   }
 }
@@ -301,18 +338,12 @@ void write_grid (struct life_t * life) {
  */
 void free_grids (struct life_t * life) {
 	
-  int i;
-  int ncols = life->ncols;
+  free(life->grid[0]);
+  free(life->next_grid[0]);
+  
+  free(life->grid);
+  free(life->next_grid);
 
-  for (i = 0; i < ncols+2; i++) {
-    //free(life->grid[i]);
-    //free(life->next_grid[i]);
-    //free(life->result_grid[i]);
-  }
-
-  //free(life->grid);
-  //free(life->next_grid);
-  //free(life->result_grid);
 }
 
 /**
@@ -372,20 +403,6 @@ void cleanup (struct life_t * life) {
  *
  */
 void collect_data(struct life_t * life){
-  //MPI_Gather(life->grid[1], life->nrows, MPI_INT, life->result_grid, life->nrows, MPI_INT, 0, MPI_COMM_WORLD);
+  MPI_Gather(life->grid[0], (life->nrows+2)*(life->ncols+2), MPI_INT, life->transfer_grid, (life->nrows+2)*(life->ncols+2), MPI_INT, 0, MPI_COMM_WORLD);
   
-}
-
-
-/**
- *  usage()
- *  Describes Life's command line option
- */
-void usage () {
-  printf("\nUsage: Life [options]\n");
-  printf("  -c|--columns number   Number of columns in grid. Default: %d\n", DEFAULT_SIZE);
-  printf("  -r|--rows number      Number of rows in grid. Default: %d\n", DEFAULT_SIZE);
-  printf("  -g|--gens number      Number of generations to run. Default: %d\n", DEFAULT_GENS);
-  printf("  -o|--output filename  Output file. Default: none.\n");
-  exit(EXIT_FAILURE);
 }
