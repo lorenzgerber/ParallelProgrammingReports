@@ -14,7 +14,7 @@ struct life_t {
   int  nrows;
   int  ** grid;
   int  ** next_grid;
-  //int  ** result_grid;
+  int  ** result_grid;
   bool do_display;
   int  generations;
   char * outfile;
@@ -44,6 +44,7 @@ double     rand_double ();
 void    randomize_grid (struct life_t * life, double prob);
 void       seed_random (int rank);
 void           cleanup (struct life_t * life);
+void      collect_data (struct life_t * life);
 void             usage ();
 
 /**
@@ -206,20 +207,33 @@ void allocate_grids (struct life_t * life) {
   int i;
   int ncols = life->ncols;
   int nrows = life->nrows;
+  int * data_grid;
+  int * data_next;
 
   life->grid      = (int **) malloc(sizeof(int *) * (ncols+2));
   life->next_grid = (int **) malloc(sizeof(int *) * (ncols+2));
   if(life->rank == 0){
-    life->result_grid = (int **) malloc(sizeof(int *) * ncols * life->size);
+    life->result_grid = (int **) malloc(sizeof(int *) * (ncols) * life->size);
   }
 
-  for (i = 0; i < ncols+2; i++) {	
-    life->grid[i]      = (int *) malloc(sizeof(int) * (nrows+2));
-    life->next_grid[i] = (int *) malloc(sizeof(int) * (nrows+2));
+  // main grids
+  //for (i = 0; i < ncols+2; i++) {	
+  //  life->grid[i]      = (int *) malloc(sizeof(int) * (nrows+2));
+  //  life->next_grid[i] = (int *) malloc(sizeof(int) * (nrows+2));
+  //}
+
+  // test new grid
+  data_grid = malloc((nrows+2)*(ncols+2)*sizeof(int));
+  data_next = malloc((nrows+2)*(ncols+2)*sizeof(int));
+  for (i = 0; i < ncols+2; i++){
+    life->grid[i] = &(data_grid[i*(nrows+2)]);
+    life->next_grid[i] = &(data_next[i*(nrows+2)]);		      
   }
 
+
+  // result grid
   if (life->rank == 0){
-    for (i = 0; i < ncols * life->size; i++){
+    for (i = 0; i < (ncols) * life->size; i++){
       life->result_grid[i] = (int *) malloc(sizeof(int) * nrows);
     }
   }
@@ -259,6 +273,8 @@ void write_grid (struct life_t * life) {
   int nrows   = life->nrows;
   int ** grid = life->grid;
 
+
+
   if (life->outfile != NULL) {       
     if ((fd = fopen(life->outfile, "w")) == NULL) {		
       perror("Failed to open file for output");
@@ -267,8 +283,9 @@ void write_grid (struct life_t * life) {
 	
     fprintf(fd, "%d %d\n", ncols, nrows);
 
-    for (i = 1; i <= ncols; i++) {
+    for (i = 0; i <= ncols; i++) {
       for (j = 1; j <= nrows; j++) {
+	printf("i j  data = %d %d %d\n", i , j, grid[i][j]);
 	if (grid[i][j] != DEAD)
 	  fprintf(fd, "%d %d\n", i, j);		
       }	
@@ -288,13 +305,13 @@ void free_grids (struct life_t * life) {
   int ncols = life->ncols;
 
   for (i = 0; i < ncols+2; i++) {
-    free(life->grid[i]);
-    free(life->next_grid[i]);
+    //free(life->grid[i]);
+    //free(life->next_grid[i]);
     //free(life->result_grid[i]);
   }
 
-  free(life->grid);
-  free(life->next_grid);
+  //free(life->grid);
+  //free(life->next_grid);
   //free(life->result_grid);
 }
 
@@ -338,6 +355,9 @@ void seed_random (int rank) {
  *  Prepare process for a clean termination.
  */
 void cleanup (struct life_t * life) {
+
+  collect_data(life);
+  
   if (life->rank == 0){
     write_grid(life);
   }
@@ -345,6 +365,17 @@ void cleanup (struct life_t * life) {
   free_grids(life);
   MPI_Finalize();
 }
+
+/**
+ * collect_data()
+ * collects the data from all nodes onto node 0
+ *
+ */
+void collect_data(struct life_t * life){
+  //MPI_Gather(life->grid[1], life->nrows, MPI_INT, life->result_grid, life->nrows, MPI_INT, 0, MPI_COMM_WORLD);
+  
+}
+
 
 /**
  *  usage()
