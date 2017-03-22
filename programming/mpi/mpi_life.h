@@ -116,6 +116,7 @@ void eval_rules (struct life_t * life) {
 	    neighbors++;
 	}
       }
+      //printf("%d %d %d %d %d\n", i , j, neighbors, grid[i][j], next_grid[i][j]);
 
       // update state
       if (neighbors < LOWER_THRESH || neighbors > UPPER_THRESH)
@@ -164,7 +165,6 @@ void copy_bounds (struct life_t * life) {
 		 TORIGHT, grid[0], nrows+2, MPI_INT, left_rank,
 		 TORIGHT, MPI_COMM_WORLD, &status);
   }
-
 	
   // Copy sides locally to maintain periodic boundaries
   // when there's only one process
@@ -186,6 +186,7 @@ void copy_bounds (struct life_t * life) {
     grid[i][0]       = grid[i][nrows];
     grid[i][nrows+1] = grid[i][1];
   }
+
 }
 
 /**
@@ -200,8 +201,9 @@ void update_grid (struct life_t * life) {
   int ** next_grid = life->next_grid;
 
   for (i = 0; i < ncols+2; i++)	
-    for (j = 0; j < nrows+2; j++)		
+    for (j = 0; j < nrows+2; j++){
       grid[i][j] = next_grid[i][j];
+    }
 }
 
 /**
@@ -271,15 +273,8 @@ void init_grids (struct life_t * life) {
   
   if (life->infile != NULL && life->rank == 0) {
     while (fscanf(fd, "%d %d\n", &i, &j) != EOF) {
-
-      if(i > 0){
-	index = (i/(life->ncols))*(life->ncols+2)*(life->nrows+2)+(life->nrows+2)+(((i-1)%(life->ncols))*(life->nrows+2))+(j+1);
-      } else {
-	index = (i/(life->ncols))*(life->ncols+2)*(life->nrows+2)+(life->nrows+2)+(j+1);	
-      }
-    
+      index = ((i-1)/(life->ncols))*(life->ncols+2)*(life->nrows+2)+(life->nrows+2)+(((i-1)%(life->ncols))*(life->nrows+2))+(j);
       life->transfer_grid[index] = ALIVE;
-
     }
 
     fclose(fd);
@@ -317,12 +312,12 @@ void write_grid (struct life_t * life) {
 
 
     for(i = 0; i < life->size; i++){
-      for( j = 1; j < ncols + 1; j++){
-	for( k = 1; k < nrows + 1; k++){
+      for( j = 0; j < ncols + 1; j++){
+	for( k = 0; k < nrows + 1; k++){
 
 	  index = i*(nrows+2)*(ncols+2)+j*(nrows+2)+k;
-	  col = i*ncols+j-1;
-	  row = k-1;
+	  col = i*ncols+j;
+	  row = k;
 	    
 	  if (life->transfer_grid[index] != DEAD){
 	    fprintf(fd, "%d %d\n", col, row);
@@ -418,5 +413,5 @@ void collect_data(struct life_t * life){
  */
 void distribute_data(struct life_t *life){
   MPI_Scatter(life->transfer_grid, (life->nrows+2)*(life->ncols+2), MPI_INT, life->grid[0], (life->nrows+2)*(life->ncols+2), MPI_INT, 0, MPI_COMM_WORLD);
-
+  MPI_Scatter(life->transfer_grid, (life->nrows+2)*(life->ncols+2), MPI_INT, life->next_grid[0], (life->nrows+2)*(life->ncols+2), MPI_INT, 0, MPI_COMM_WORLD);
 }

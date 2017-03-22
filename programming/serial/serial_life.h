@@ -153,8 +153,9 @@ void update_grid (struct life_t * life) {
   int ** next_grid = life->next_grid;
 
   for (i = 0; i < ncols+2; i++)
-    for (j = 0; j < nrows+2; j++)
+    for (j = 0; j < nrows+2; j++){
       grid[i][j] = next_grid[i][j];
+    }
 }
 
 /**
@@ -237,14 +238,12 @@ void write_grid (struct life_t * life) {
       exit(EXIT_FAILURE);
     }
 
-    fprintf(fd, "%d\n%d\n", ncols, nrows);
+    fprintf(fd, "%d %d\n", ncols, nrows);
 
     for (i = 1; i <= ncols; i++) {
       for (j = 1; j <= nrows; j++) {
 	if (grid[i][j] != DEAD)
-	  fprintf(fd, "1\n");
-	else
-	  fprintf(fd, "0\n");
+	  fprintf(fd, "%d %d\n", i, j);
       }
     }
     fclose(fd);

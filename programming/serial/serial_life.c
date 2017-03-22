@@ -1,4 +1,4 @@
-#include "Life.h"
+#include "serial_life.h"
 
 int main(int argc, char ** argv) {
 	int count;

@@ -165,6 +165,7 @@ void copy_bounds (struct life_t * life) {
 		grid[i][0]       = grid[i][nrows];
 		grid[i][nrows+1] = grid[i][1];
 	}
+		
 }
 
 /*
@@ -256,6 +257,7 @@ void init_grids (struct life_t * life) {
 	} else {
 		randomize_grid(life, INIT_PROB);
 	}
+		
 }
 
 /*
