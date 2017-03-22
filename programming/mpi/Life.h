@@ -1,11 +1,11 @@
 #include <stddef.h>
 #include <mpi.h>
-#include <time.h>     // For seeding random
-#include <stdlib.h>   // For malloc et al.
-#include <stdbool.h>  // For true/false
-#include <stdio.h>    // For file i/o
+#include <time.h>
+#include <stdlib.h>
+#include <stdbool.h>
+#include <stdio.h>
 #include <unistd.h>
-#include "timer.h"    // For Benchmarking, Library from Coursebook
+#include "timer.h"
 
 struct life_t {
   int  rank;
@@ -33,19 +33,20 @@ const int     UPPER_THRESH = 3;
 const int     LOWER_THRESH = 2;
 const int     SPAWN_THRESH = 3;
 
-int               init (struct life_t * life, int * c, char *** v);
-void        eval_rules (struct life_t * life);
-void       copy_bounds (struct life_t * life);
-void       update_grid (struct life_t * life);
-void    allocate_grids (struct life_t * life);
-void        init_grids (struct life_t * life);
-void        write_grid (struct life_t * life);
-void        free_grids (struct life_t * life);
-double     rand_double ();
-void    randomize_grid (struct life_t * life, double prob);
-void       seed_random (int rank);
-void           cleanup (struct life_t * life);
-void      collect_data (struct life_t * life);
+int                  init (struct life_t * life, int * c, char *** v);
+void           eval_rules (struct life_t * life);
+void          copy_bounds (struct life_t * life);
+void          update_grid (struct life_t * life);
+void       allocate_grids (struct life_t * life);
+void           init_grids (struct life_t * life);
+void           write_grid (struct life_t * life);
+void           free_grids (struct life_t * life);
+double        rand_double ();
+void       randomize_grid (struct life_t * life, double prob);
+void          seed_random (int rank);
+void              cleanup (struct life_t * life);
+void         collect_data (struct life_t * life);
+void      distribute_data (struct life_t * life);
 
 /**
  * init_env()
@@ -155,8 +156,7 @@ void copy_bounds (struct life_t * life) {
 
   if (size != 1) {
     MPI_Sendrecv(grid[1], nrows+2, MPI_INT, left_rank, TOLEFT,
-		 grid[ncols+1], nrows+2, MPI_INT, right_rank, TOLEFT,
-			
+		 grid[ncols+1], nrows+2, MPI_INT, right_rank, TOLEFT,			
 		 MPI_COMM_WORLD, &status);
 
 		
@@ -217,7 +217,7 @@ void allocate_grids (struct life_t * life) {
 
   // allocating the transfer array
   if(life->rank == 0){
-    life->transfer_grid = (int *) malloc(sizeof(int ) * (ncols + 2) * life->size * (nrows+2));
+    life->transfer_grid = (int *) malloc(sizeof(int ) * (ncols + 2) * life->size * (nrows + 2));
   }
 
   // main grids
@@ -252,10 +252,14 @@ void init_grids (struct life_t * life) {
       printf("File must at least define grid dimensions!\nExiting.\n");
       exit(EXIT_FAILURE);
     }
+    life->ncols = life->ncols / life->size;    
   }
 
+  if(life->infile != NULL){
+    MPI_Bcast(&life->ncols, 1, MPI_INT, 0, MPI_COMM_WORLD);
+  }
+  
   allocate_grids(life);
-
 
   for (i = 0; i < life->ncols+2; i++) {
     for (j = 0; j < life->nrows+2; j++) {
@@ -267,26 +271,26 @@ void init_grids (struct life_t * life) {
   
   if (life->infile != NULL && life->rank == 0) {
     while (fscanf(fd, "%d %d\n", &i, &j) != EOF) {
-      //index = (i/(life->ncols/life->size))*(life->ncols/life->size+2)*(life->nrows+2)+(life->nrows+2)+(((i-1)%(life->ncols/life->size))*(life->nrows+2))+(j+1);
-      //index = (i/(life->ncols/life->size))*(life->ncols/life->size+2)*(life->nrows+2)+(life->nrows+2)+(((i-1)%(life->ncols/life->size))*(life->nrows+2))+(j+1);
-      //index = (i/(life->ncols/life->size))*(life->ncols/life->size+2)*(life->nrows+2);
-      //index = (life->nrows+2);
-      index = ((i-1)%(life->ncols/life->size))*(life->nrows+2); 
-      printf("index = %d %d %d \n", i, j, index);
-      //life->transfer_grid[index] = ALIVE;
-      
-      //life->grid[i][j]      = ALIVE;
-      //life->next_grid[i][j] = ALIVE;
+
+      if(i > 0){
+	index = (i/(life->ncols))*(life->ncols+2)*(life->nrows+2)+(life->nrows+2)+(((i-1)%(life->ncols))*(life->nrows+2))+(j+1);
+      } else {
+	index = (i/(life->ncols))*(life->ncols+2)*(life->nrows+2)+(life->nrows+2)+(j+1);	
+      }
+    
+      life->transfer_grid[index] = ALIVE;
+
     }
 
     fclose(fd);
+
   } else {
     randomize_grid(life, INIT_PROB);
   }
 
-  
-   
-  randomize_grid(life, INIT_PROB);
+  if (life->infile != NULL){
+    distribute_data(life);
+  }
 
 }
 
@@ -405,4 +409,14 @@ void cleanup (struct life_t * life) {
 void collect_data(struct life_t * life){
   MPI_Gather(life->grid[0], (life->nrows+2)*(life->ncols+2), MPI_INT, life->transfer_grid, (life->nrows+2)*(life->ncols+2), MPI_INT, 0, MPI_COMM_WORLD);
   
+}
+
+/**
+ * distribute_data()
+ * distributes the read file to the different processes
+ *
+ */
+void distribute_data(struct life_t *life){
+  MPI_Scatter(life->transfer_grid, (life->nrows+2)*(life->ncols+2), MPI_INT, life->grid[0], (life->nrows+2)*(life->ncols+2), MPI_INT, 0, MPI_COMM_WORLD);
+
 }
