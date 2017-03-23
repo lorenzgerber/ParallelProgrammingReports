@@ -112,7 +112,7 @@
 
 @misc{golRosetta,
   key          = {Game of Life C, Rosetta},
-  year         = 2017,
+  year         = 2017
   title        = {Game of Life C serial},
   howpublished = {\url{https://rosettacode.org/wiki/Conway\%27a_Game_of_Life}},
   note         = {accessed: 2017-03-23},

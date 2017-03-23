@@ -89,15 +89,14 @@ Agglomerating the individual tasks per cell seems to make sense as they adhere t
 As the identified tasks are tightly coupled, it seems to make most sense to map larger agglomerates of cells to individual MPI nodes. Hence, communication during the game will be limited to handling the mentioned special cases of cells that are at the border of a local cell group. 
 \end{enumerate}
 
-For the implementation it was decided to divide the global square field along vertical linesinto equal sized local rectangular fields. As such, communication between nodes included only the cells that were on the vertical borders as the horizontal borders (top and bottom) could be calculated locally. To facilitate communication, the local rectangular cell groups were padded with one layer of cells where the cell state from other local border interface could be imported to.
+Practically, it was decided to divide the global square game of life field vertically into equal sized local rectangular fields of cells. As such, communication between nodes includes only the cells that are on the vertical borders as the horizontal borders (top and bottom) can be calculated locally. To facilitate the communication, the local rectangular cell groups are padded with one layer of cells where the cell state from other local border interface can be imported to.
 
-Hence there were a total of three tasks per game cycle determined and implemented:
+Hence there were a total of three tasks per game cycle determined:
 \begin{enumerate}
 \item update interface region
 \item determine number of neighbours alive
 \item update state
 \end{enumerate}
-
 
 
 \section{Usage Instructions}
