@@ -12,13 +12,13 @@
 module add openmpi/gcc/1.8.8
 
 echo "Generating random 1024 x 1024 game field"
-./serial_life 1024 1 test.txt
+./serial_life 1024 1 test.txt &>/dev/null
 
 echo "running serial implementation on random data (100 generations)..."
-./serial_life 1024 100 out_serial.txt test.txt
+./serial_life 1024 100 out_serial.txt test.txt &>/dev/null
 
 echo "running mpi implementation using 4 processes on random data (100 generations)..."
-srun -n 4 ./mpi_life 1024 100 out_mpi.txt test.txt
+srun -n 4 ./mpi_life 1024 100 out_mpi.txt test.txt &>/dev/null
 
 echo "comparing the resulting datasets..."
 if [[ $(diff out_mpi.txt out_serial.txt) ]]; then
@@ -27,7 +27,7 @@ if [[ $(diff out_mpi.txt out_serial.txt) ]]; then
     Rscript --vanilla plot_script.R out_mpi.txt out_mpi.pdf &>/dev/null
 else
     echo "No output from 'diff', validation succeeded"
-    Rscript --vanilla plot_script.R out_serial.txt validated.pdf
+    Rscript --vanilla plot_script.R out_serial.txt validated.pdf &>/dev/null
 fi
 
 
