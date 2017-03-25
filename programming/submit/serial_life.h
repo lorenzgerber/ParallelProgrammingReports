@@ -65,6 +65,9 @@ int init (struct life_t * life, int * c, char *** v) {
     life->outfile   = argv[3];
     if(argc == 5){
       life->infile = argv[4];
+    } else {
+       printf("usage: serial_life n_size generations outfile [infile]");
+       exit(1);
     }
   }
 

@@ -82,7 +82,7 @@ int init (struct life_t * life, int * c, char *** v) {
     }
     
   } else {
-    printf("usage: Life [n_size] [generations] [outfile] [infile]");
+    printf("usage: mpi_life n_size generations outfile [infile]");
     exit(1);
   }
 
