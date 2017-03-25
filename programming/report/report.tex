@@ -145,7 +145,19 @@ Here the qualitative result of the serial and parallel version were evaluated to
 
 The typical output of a validation session is shown below:
 \begin{verbatim}
-
+Generating random 1024 x 1024 game field
+1.031840e-01
+running serial implementation on random data (100 generations)...
+8.280641e+00
+running mpi implementation using 4 processes on random data (100 generations)...
+2.308310e+00
+2.309311e+00
+2.309163e+00
+2.308057e+00
+comparing the resulting datasets...
+No output from 'diff', validation succeeded
+null device 
+          1 
 \end{verbatim}
 
 \section{Benchmarking}
