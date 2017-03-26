@@ -79,8 +79,9 @@ void      distribute_data (struct life_t * life);
 
 /**
  * init_env()
- * Initializes runtime environment.
- *
+ * Initializes the main data container struct life,
+ * starts up MPI then parses the command line args
+ * and finally sets up the game field.
  */
 int init (struct life_t * life, int * c, char *** v) {
   int argc          = *c;
@@ -145,8 +146,6 @@ void eval_rules (struct life_t * life) {
 	    neighbors++;
 	}
       }
-      //printf("%d %d %d %d %d\n", i , j, neighbors, grid[i][j], next_grid[i][j]);
-
       // update state
       if (neighbors < LOWER_THRESH || neighbors > UPPER_THRESH)
 	next_grid[i][j] = DEAD;
@@ -220,7 +219,8 @@ void copy_bounds (struct life_t * life) {
 
 /**
  *  update_grid()
- *  Copies temporary values from next_grid into grid.
+ *  Copies temporary that were obtained during the
+ *  update phase from from next_grid into grid.
  */
 void update_grid (struct life_t * life) {
   int i,j;
@@ -237,7 +237,11 @@ void update_grid (struct life_t * life) {
 
 /**
  *  allocate_grids()
- *  Allocates memory for a 2D array of integers.
+ *  Allocates memory for integer 2D arrays. Three
+ *  grids are used and initialized here: The main
+ *  game grid, the update grid and the transfer grid
+ *  which is used to scatter and gather the game state
+ *  in the beginning and the end from/to rank 0.
  */
 void allocate_grids (struct life_t * life) {
   int i;
@@ -320,8 +324,9 @@ void init_grids (struct life_t * life) {
 
 /**
  *  write_grid()
- *  Dumps the current state of life.grid to life.outfile.
- *  Only outputs the coordinates of !DEAD cells.
+ *  Writes the current state of the main grid to the outfile
+ *  indicated in the commandline args. The output is basically
+ *  the coordinates of all cells alive separated with a space.
  */
 void write_grid (struct life_t * life) {
   FILE * fd;
@@ -360,9 +365,10 @@ void write_grid (struct life_t * life) {
 }
 
 /**
- *  free_grids()
- *  Frees memory used by an array that was allocated 
- *  with allocate_grids().
+ *  @brief Frees the memory
+ *
+ *  Frees memory of all three grids that were
+ *  allocated with in the call to allocate_grids().
  */
 void free_grids (struct life_t * life) {
 	
@@ -375,17 +381,18 @@ void free_grids (struct life_t * life) {
 }
 
 /**
- *  rand_double()
- *  Generate a random double between 0 and 1.
+ *  @brief Generate a random double between 0 and 1.
  */
 double rand_double() {
   return (double)rand()/(double)RAND_MAX;
 }
 
 /**
- *  randomize_grid()
- *  Initialize a Life grid. Each cell has a [prob] chance
- *  of starting alive.
+ *  @brief initializes the main grid
+ *
+ *  Using a fix probabilty to determine whether
+ *  a cell is dead or alive on startup if no
+ *  in file is provided.
  */
 void randomize_grid (struct life_t * life, double prob) {
   int i,j;
@@ -401,17 +408,19 @@ void randomize_grid (struct life_t * life, double prob) {
 }
 
 /**
- *  seed_random()
- *  Seed the random number generator based on the
- *  process's rank and time. Multiplier is arbitrary.
+ *  @brief seed random number generator
+ *  Use rank and time to seed the random number
+ *  generator.
  */
 void seed_random (int rank) {
   srand(time(NULL) + 100*rank);
 }
 
 /**
- *  cleanup()
- *  Prepare process for a clean termination.
+ *  @brief cleaning up after the game
+ *  clean up handes output of the grid and
+ *  calling the free memory routines before
+ *  terminating the MPI processes.
  */
 void cleanup (struct life_t * life) {
 
@@ -426,9 +435,8 @@ void cleanup (struct life_t * life) {
 }
 
 /**
- * collect_data()
- * collects the data from all nodes onto node 0
- *
+ * @brief collect the data to rank 0
+ * collects the data from all mpi processes onto rank 0
  */
 void collect_data(struct life_t * life){
   MPI_Gather(life->grid[0], (life->nrows+2)*(life->ncols+2), MPI_INT, life->transfer_grid, (life->nrows+2)*(life->ncols+2), MPI_INT, 0, MPI_COMM_WORLD);
@@ -436,8 +444,10 @@ void collect_data(struct life_t * life){
 }
 
 /**
- * distribute_data()
- * distributes the read file to the different processes
+ * @brief distributes the data to all MPI processes
+ * distributes the read file to the different MPI processes.
+ * In case of no infile, random data is produces directly at
+ * each MPI node.
  *
  */
 void distribute_data(struct life_t *life){

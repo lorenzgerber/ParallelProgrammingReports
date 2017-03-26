@@ -1,3 +1,28 @@
+/*
+ * mpi_life
+ *
+ * Coursework 5DV152 Parallel Programming for Multicore based Systems
+ * at Umea University, March 2017
+ *
+ * Lorenz Gerber
+ *                                                                                           
+ * Version 0.1
+ *                                                                                  
+ * Licensed under GPLv3
+ *                                                                                                      
+ */
+
+/**
+ * @file mpi_life.h
+ * @author Lorenz Gerber
+ * @date 26 March 2017
+ * @brief File contains the main method for mpi_life
+ *
+ * mpi_life is a mpi implementation of contway's game
+ * of life. Certain parts of the code are inspired
+ * by Davind Joiner's implementation found on shodor.org.
+ */
+
 #include <stddef.h>
 #include <mpi.h>
 #include <time.h>
@@ -7,6 +32,10 @@
 #include <unistd.h>
 #include "timer.h"
 
+/**
+ * struct life_t holds old needed variables for
+ * computation of the game.
+ */
 struct life_t {
   int  rank;
   int  size;
@@ -15,19 +44,19 @@ struct life_t {
   int  ** grid;
   int  ** next_grid;
   int  * transfer_grid;
-  bool do_display;
   int  generations;
   char * infile;
   char * outfile;
 };
 
+/**
+ * enum on the cell states. ALIVE are all values larger than zero.
+ */
 enum CELL_STATES {
 	DEAD = 0,
 	ALIVE
 };
 
-const int     DEFAULT_SIZE = 105;
-const int     DEFAULT_GENS = 10000;
 const double     INIT_PROB = 0.25;
 const int     UPPER_THRESH = 3;
 const int     LOWER_THRESH = 2;
@@ -58,9 +87,9 @@ int init (struct life_t * life, int * c, char *** v) {
   char ** argv      = *v;
   life->rank        = 0;
   life->size        = 1;
-  life->ncols       = DEFAULT_SIZE;
-  life->nrows       = DEFAULT_SIZE;
-  life->generations = DEFAULT_GENS;
+  life->ncols       = 0;
+  life->nrows       = 0;
+  life->generations = 0;
   life->outfile     = NULL;
   life->infile      = NULL;
 
