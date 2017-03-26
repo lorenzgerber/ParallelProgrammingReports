@@ -1,5 +1,37 @@
+/*
+ * mpi_life
+ *
+ * Coursework 5DV152 Parallel Programming for Multicore based Systems
+ * at Umea University, March 2017
+ *
+ * Lorenz Gerber
+ *
+ * Version 0.1
+ *
+ * Licensed under GPLv3
+ *
+ */
+
+/**
+ * @file mpi_life.c
+ * @author Lorenz Gerber
+ * @date 26 March 2017
+ * @brief File contains the main method for mpi_life
+ *
+ * mpi_life is a mpi implementation of contway's game
+ * of life. Certain parts of the code are inspired
+ * by Davind Joiner's implementation found on shodor.org.
+ */
 #include "mpi_life.h"
 
+
+/**
+ * Main
+ *
+ * This is the main method to be started for
+ * mpi_life, an implementation of conways game
+ * of life. 
+ */
 int main(int argc, char ** argv) {
   int count;
   double start, finish;
@@ -24,6 +56,6 @@ int main(int argc, char ** argv) {
   }
 
   cleanup(&life);
-  exit(EXIT_SUCCESS);
+  return 0;
 
 }
