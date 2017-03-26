@@ -57,8 +57,6 @@ enum CELL_STATES {
 	ALIVE
 };
 
-//const int     DEFAULT_SIZE = 256;
-//const int     DEFAULT_GENS = 100;
 const double     INIT_PROB = 0.25;
 const int     UPPER_THRESH = 3;
 const int     LOWER_THRESH = 2;
@@ -89,9 +87,9 @@ int init (struct life_t * life, int * c, char *** v) {
   char ** argv      = *v;
   life->rank        = 0;
   life->size        = 1;
-  life->ncols       = DEFAULT_SIZE;
-  life->nrows       = DEFAULT_SIZE;
-  life->generations = DEFAULT_GENS;
+  life->ncols       = 0;
+  life->nrows       = 0;
+  life->generations = 0;
   life->outfile     = NULL;
   life->infile      = NULL;
 
