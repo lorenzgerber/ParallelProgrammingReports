@@ -108,7 +108,7 @@ The makefile that builds both the serial (\verb+serial_life+) and MPI parallel v
 \subsection{Usage}
 
 \subsubsection{Running the Program}
-Both the serial and the parallel version use the same simple command argument parser that accepts either three or four command line arguments. These are in sequence: \verb+n_size+ \verb+generations+ \verb+outfile+ \verb+[infile]+. If no infile is indicated, a random start state for the simulation is created. The only output to stdout obtained from the programs is the runtime. However, a file with the game field as a text file is written to the working directory using the filename indicated as command line argument.
+Both the serial and the parallel version use the same simple command argument parser that accepts either three or four command line arguments. These are in sequence: \verb+n_size+ \verb+generations+ \verb+outfile+ \verb+[infile]+. If no infile is indicated, a random start state for the simulation is created.
 \subsubsection{Graph Output using R Script}
 To obtain graphical output a short R script was written. Hence to obtain a graphical result it is needed to have the R language interpreter installed on the system \cite{rlanguage}. The script shown below can be run from the command line with the following command:\\
 \verb+Rscript --vanilla plot_Script.R data_file.txt graphical_output.pdf+\\
