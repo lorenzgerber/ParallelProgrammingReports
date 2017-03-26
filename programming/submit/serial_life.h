@@ -1,13 +1,38 @@
+/*
+ * serial_life
+ *
+ * Coursework 5DV152 Parallel Programming for Multicore based Systems
+ * at Umea University, March 2017
+ *
+ * Lorenz Gerber
+ *
+ * Version 0.1
+ *
+ * Licensed under GPLv3
+ */
+
+/**
+ * @file serial_life.h
+ * @author Lorenz Gerber
+ * @date 26 March 2017
+ * @brief File contains the main method for serial_life
+ *
+ * serial_life is a serial implementation of conway's game
+ * of life. This version was reduced from the parallel MPI
+ * version mpi_life.
+ */
+
 #include <time.h>
 #include <stdlib.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include "timer.h"
 
-const int     DEFAULT_SIZE = 105;
-const int     DEFAULT_GENS = 10000;
-const double     INIT_PROB = 0.25;
 
+/**
+ * @brief struct life_t holds old needed variables for
+ * computation of the game.
+ */
 struct life_t {
   int  rank;
   int  ncols;
@@ -19,17 +44,18 @@ struct life_t {
   char * infile;
 };
 
+/**
+ * @brief enum on the cell states. 
+ * ALIVE are all values larger than zero.
+ */
 enum CELL_STATES {
 	DEAD = 0,
 	ALIVE
 };
 
-// Cells become DEAD with more than UPPER_THRESH 
-// or fewer than LOWER_THRESH neighbors
+const double INIT_PROB = 0.25;
 const int UPPER_THRESH = 3;
 const int LOWER_THRESH = 2;
-
-// Cells with exactly SPAWN_THRESH neighbors become ALIVE
 const int SPAWN_THRESH = 3;
 
 int               init (struct life_t * life, int * c, char *** v);
@@ -46,15 +72,18 @@ void           cleanup (struct life_t * life);
 void             usage ();
 
 /**
- *  init_env()
- *  Initialize runtime environment.
+ * @brief Initilizes the game
+ *
+ * Initializes the main data container struct life,
+ * parses the command line args and finally sets
+ * up the game field.
  */
 int init (struct life_t * life, int * c, char *** v) {
   int argc          = *c;
   char ** argv      = *v;
-  life->ncols       = DEFAULT_SIZE;
-  life->nrows       = DEFAULT_SIZE;
-  life->generations = DEFAULT_GENS;
+  life->ncols       = 0;
+  life->nrows       = 0;
+  life->generations = 0;
   life->outfile     = NULL;
   life->infile      = NULL;
 
@@ -79,9 +108,9 @@ int init (struct life_t * life, int * c, char *** v) {
 }
 
 /**
- *  eval_rules()
- *  Evaluate the rules of Life for each cell; count
- *  neighbors and update current state accordingly.
+ * @brief game step that determine the number
+ *
+ * of neighbours in the temporary grid.
  */
 void eval_rules (struct life_t * life) {
   int i,j,k,l,neighbors;
@@ -114,9 +143,10 @@ void eval_rules (struct life_t * life) {
 }
 
 /**
- *  copy_bounds()
- *  Copies sides, top, and bottom to their respective locations.
+ * @brief Copies sides top and bottom
  *
+ * Copies sides, top, and bottom to their respective 
+ * locations.
  */
 void copy_bounds (struct life_t * life) {
   int i,j;
@@ -144,9 +174,13 @@ void copy_bounds (struct life_t * life) {
   }
 }
 
+
 /**
- *  update_grid()
- *  Copies temporary values from next_grid into grid.
+ * @brief Update temporary grid to main grid
+ *
+ * Copies values that were calculated by
+ * the evaluate_rules function from from 
+ * next_grid into grid.
  */
 void update_grid (struct life_t * life) {
   int i,j;
@@ -162,8 +196,11 @@ void update_grid (struct life_t * life) {
 }
 
 /**
- *  allocate_grids()
- *  Allocates memory for a 2D array of integers.
+ * @brief Allocate memory
+ *
+ * Allocates memory for integer 2D arrays. Two
+ * grids are used and allocated here: The main
+ * game grid and the update grid.
  */
 void allocate_grids (struct life_t * life) {
   int i;
@@ -179,10 +216,13 @@ void allocate_grids (struct life_t * life) {
   }
 }
 
+
 /**
- *  init_grids()
- *  Initialize cells based on input file, otherwise all cells
- *  are DEAD.
+ * @brief initialize grid with values
+ *
+ * Initialize cells based on input file, otherwise all cells
+ * are first set dead then the randomize_grid funciton is
+ * called.
  */
 void init_grids (struct life_t * life) {
 
@@ -224,9 +264,11 @@ void init_grids (struct life_t * life) {
 }
 
 /**
- *  write_grid()
- *  Dumps the current state of life.grid to life.outfile.
- *  Only outputs the coordinates of !DEAD cells.
+ * @brief Write current game state to file
+ * 
+ * Writes the current state of the main grid to the outfile
+ * indicated in the commandline args. The output is basically
+ * the coordinates of all cells alive separated with a space.
  */
 void write_grid (struct life_t * life) {
   FILE * fd;
@@ -253,10 +295,12 @@ void write_grid (struct life_t * life) {
   }
 }
 
+
 /**
- *  free_grids()
- *  Frees memory used by an array that was allocated 
- *  with allocate_grids().
+ * @brief Frees the memory
+ *
+ * Frees memory of all three grids that were
+ * allocated with in the call to allocate_grids().
  */
 void free_grids (struct life_t * life) {
   int i;
@@ -272,18 +316,19 @@ void free_grids (struct life_t * life) {
 }
 
 /**
- *  rand_double()
- *  Generate a random double between 0 and 1.
+ *  @brief Generate a random double between 0 and 1.
  */
 double rand_double() {
   return (double)random()/(double)RAND_MAX;
 }
 
 /**
- * randomize_grid()
- * Initialize a Life grid. Each cell has a [prob] chance
- * of starting alive.
-*/
+ * @brief initializes the main grid
+ *
+ * Using a fix probability to determine whether 
+ * a cell is dead or alive on startup if no 
+ * in file is provided
+ */
 void randomize_grid (struct life_t * life, double prob) {
   int i,j;
   int ncols = life->ncols;
@@ -297,18 +342,22 @@ void randomize_grid (struct life_t * life, double prob) {
   }
 }
 
+
 /**
- *  seed_random()
- *  Seed the random number generator based on the
- *  process's rank and time. Multiplier is arbitrary.
+ * @brief seed random number generator
+ *
+ * Use rank and time to seed the random number
+ * generator.
  */
 void seed_random (int rank) {
   srandom(time(NULL) + 100*rank);
 }
 
 /**
- *  cleanup()
- *  Prepare process for a clean termination.
+ * @brief cleaning up after the game
+ *
+ * clean up handles output of the grid and
+ * calling the free memory routines.
  */
 void cleanup (struct life_t * life) {
   write_grid(life);

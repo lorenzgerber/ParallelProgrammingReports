@@ -5,11 +5,10 @@
  * at Umea University, March 2017
  *
  * Lorenz Gerber
- *                                                                                           
+ *
  * Version 0.1
- *                                                                                  
+ *
  * Licensed under GPLv3
- *                                                                                                      
  */
 
 /**
@@ -18,7 +17,7 @@
  * @date 26 March 2017
  * @brief File contains the main method for mpi_life
  *
- * mpi_life is a mpi implementation of contway's game
+ * mpi_life is a mpi implementation of conway's game
  * of life. Certain parts of the code are inspired
  * by Davind Joiner's implementation found on shodor.org.
  */
@@ -33,7 +32,7 @@
 #include "timer.h"
 
 /**
- * struct life_t holds old needed variables for
+ * @brief struct life_t holds old needed variables for
  * computation of the game.
  */
 struct life_t {
@@ -50,7 +49,8 @@ struct life_t {
 };
 
 /**
- * enum on the cell states. ALIVE are all values larger than zero.
+ * @brief enum on the cell states. 
+ * ALIVE are all values larger than zero.
  */
 enum CELL_STATES {
 	DEAD = 0,
@@ -78,7 +78,8 @@ void         collect_data (struct life_t * life);
 void      distribute_data (struct life_t * life);
 
 /**
- * init_env()
+ * @brief Initilizes the game
+ *
  * Initializes the main data container struct life,
  * starts up MPI then parses the command line args
  * and finally sets up the game field.
@@ -123,9 +124,9 @@ int init (struct life_t * life, int * c, char *** v) {
 }
 
 /**
- *  eval_rules()
- *  Evaluate the rules of Life for each cell; count
- *  neighbors and update current state accordingly.
+ * @brief game step that determine the number
+ *
+ * of neighbours in the temporary grid.
  */
 void eval_rules (struct life_t * life) {
   int i,j,k,l,neighbors;
@@ -156,13 +157,12 @@ void eval_rules (struct life_t * life) {
 }
 
 /**
- *  copy_bounds()
- *  Copies sides, top, and bottom to their respective locations.
- *  All boundaries are considered periodic.
+ * @brief Copies sides top and bottom
  *
- *  In the MPI model, processes are aligned side-by-side.
- *  Left and right sides are sent to neighboring processes.
- *  Top and bottom are copied from the process's own grid.
+ * Copies sides, top, and bottom to their respective locations.
+ * In the MPI model, processes are aligned side-by-side.
+ * Left and right sides are sent to neighboring processes.
+ * Top and bottom are copied from the process's own grid.
  */
 void copy_bounds (struct life_t * life) {
   int i,j;
@@ -217,10 +217,13 @@ void copy_bounds (struct life_t * life) {
 
 }
 
+
 /**
- *  update_grid()
- *  Copies temporary that were obtained during the
- *  update phase from from next_grid into grid.
+ * @brief Update temporary grid to main grid
+ *
+ * Copies values that were calculated by
+ * the evaluate_rules function from from 
+ * next_grid into grid.
  */
 void update_grid (struct life_t * life) {
   int i,j;
@@ -236,12 +239,13 @@ void update_grid (struct life_t * life) {
 }
 
 /**
- *  allocate_grids()
- *  Allocates memory for integer 2D arrays. Three
- *  grids are used and initialized here: The main
- *  game grid, the update grid and the transfer grid
- *  which is used to scatter and gather the game state
- *  in the beginning and the end from/to rank 0.
+ * @brief Allocate memory
+ *
+ * Allocates memory for integer 2D arrays. Three
+ * grids are used and allocated here: The main
+ * game grid, the update grid and the transfer grid
+ * which is used to scatter and gather the game state
+ * in the beginning and the end from/to rank 0.
  */
 void allocate_grids (struct life_t * life) {
   int i;
@@ -268,9 +272,11 @@ void allocate_grids (struct life_t * life) {
 }
 
 /**
- *  init_grids()
- *  Initialize cells based on input file, otherwise all cells
- *  are DEAD.
+ * @brief initialize grid with values
+ *
+ * Initialize cells based on input file, otherwise all cells
+ * are first set dead then the randomize_grid funciton is
+ * called.
  */
 void init_grids (struct life_t * life) {
   int i,j;
@@ -319,14 +325,14 @@ void init_grids (struct life_t * life) {
   if (life->infile != NULL){
     distribute_data(life);
   }
-
 }
 
 /**
- *  write_grid()
- *  Writes the current state of the main grid to the outfile
- *  indicated in the commandline args. The output is basically
- *  the coordinates of all cells alive separated with a space.
+ * @brief Write current game state to file
+ * 
+ * Writes the current state of the main grid to the outfile
+ * indicated in the commandline args. The output is basically
+ * the coordinates of all cells alive separated with a space.
  */
 void write_grid (struct life_t * life) {
   FILE * fd;
@@ -365,10 +371,10 @@ void write_grid (struct life_t * life) {
 }
 
 /**
- *  @brief Frees the memory
+ * @brief Frees the memory
  *
- *  Frees memory of all three grids that were
- *  allocated with in the call to allocate_grids().
+ * Frees memory of all three grids that were
+ * allocated with in the call to allocate_grids().
  */
 void free_grids (struct life_t * life) {
 	
@@ -381,18 +387,18 @@ void free_grids (struct life_t * life) {
 }
 
 /**
- *  @brief Generate a random double between 0 and 1.
+ * @brief Generate a random double between 0 and 1.
  */
 double rand_double() {
   return (double)rand()/(double)RAND_MAX;
 }
 
 /**
- *  @brief initializes the main grid
+ * @brief initializes the main grid
  *
- *  Using a fix probabilty to determine whether
- *  a cell is dead or alive on startup if no
- *  in file is provided.
+ * Using a fix probabilty to determine whether
+ * a cell is dead or alive on startup if no
+ * in file is provided.
  */
 void randomize_grid (struct life_t * life, double prob) {
   int i,j;
@@ -408,19 +414,21 @@ void randomize_grid (struct life_t * life, double prob) {
 }
 
 /**
- *  @brief seed random number generator
- *  Use rank and time to seed the random number
- *  generator.
+ * @brief seed random number generator
+ *
+ * Use rank and time to seed the random number
+ * generator.
  */
 void seed_random (int rank) {
   srand(time(NULL) + 100*rank);
 }
 
 /**
- *  @brief cleaning up after the game
- *  clean up handes output of the grid and
- *  calling the free memory routines before
- *  terminating the MPI processes.
+ * @brief cleaning up after the game
+ *
+ * clean up handes output of the grid and
+ * calling the free memory routines before
+ * terminating the MPI processes.
  */
 void cleanup (struct life_t * life) {
 
@@ -435,7 +443,8 @@ void cleanup (struct life_t * life) {
 }
 
 /**
- * @brief collect the data to rank 0
+ * @brief mpi_gather the grid
+ *
  * collects the data from all mpi processes onto rank 0
  */
 void collect_data(struct life_t * life){
@@ -444,11 +453,11 @@ void collect_data(struct life_t * life){
 }
 
 /**
- * @brief distributes the data to all MPI processes
+ * @brief mpi_scatter the grid
+ *
  * distributes the read file to the different MPI processes.
  * In case of no infile, random data is produces directly at
  * each MPI node.
- *
  */
 void distribute_data(struct life_t *life){
   MPI_Scatter(life->transfer_grid, (life->nrows+2)*(life->ncols+2), MPI_INT, life->grid[0], (life->nrows+2)*(life->ncols+2), MPI_INT, 0, MPI_COMM_WORLD);
