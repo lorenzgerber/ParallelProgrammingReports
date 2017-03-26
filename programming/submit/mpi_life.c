@@ -19,7 +19,9 @@ int main(int argc, char ** argv) {
 }
 
   finish = MPI_Wtime();
-  printf("%e\n", finish-start);
+  if(life.rank == 0){
+    printf("%e\n", finish-start);
+  }
 
   cleanup(&life);
   exit(EXIT_SUCCESS);

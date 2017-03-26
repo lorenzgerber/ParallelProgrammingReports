@@ -6,7 +6,7 @@
 # Number of tasks per node
 #SBATCH --tasks-per-node=1
 #
-#SBATCH --time=00:02:00
+#SBATCH --time=00:10:00
 
 # Modules
 module add openmpi/gcc/1.8.8
