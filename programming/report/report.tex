@@ -27,7 +27,7 @@
 \coursecode{5DV152}
 \title{Final Programming Assignment\\ MPI Game of Life}
 \author{Lorenz Gerber ({\tt{dv15lgr@cs.umu.se}} {\tt{lozger03@student.umu.se}})}
-\date{2017-03-22}
+\date{2017-03-26}
 %\revisiondate{2016-01-18}
 \instructor{Lars Karlsson / Mikael Ränner}
 
@@ -70,22 +70,22 @@
 \section{Introduction}
 Here it was the aim to design and implement conway's game of life that can be run on a High Performance Computing system using the MPI library. 
 \section{Conway's Game of Life}
-Conway simplified mathematical models from von Neuman that were about structures which had the ability to copy themselves. Published 1970, the surprising property of the program was that it represented a turing complete system despite using only very few simple rules. It was the start of a new research field about `cellular automata'.
+Conway simplified mathematical models from von Neuman that were about structures which had the ability to copy themselves. Published 1970, the surprising property of the program was that it represented a Turing complete system despite using only very few simple rules. It was the start of a new research field about `cellular automata'.
 
-Conway's game of life is represented by a regular grid of limited size that consists of individual cells which can either be death or alive. The game of life proceeds in rounds: In each round the state of each cell is evaluated individually and then updated to an eventual new state. The most important feature of this system are the rules applied for assessing and updating the state of each individual cell: Based on the eight neighbouring cells, it is determined if a cells environment is life promoting or overcrowded. Hence, the variable to determine and evaluate is the number of neighbouring cells alive.
+Conway's game of life is represented by a regular grid of limited size that consists of individual cells which can either be death or alive. The game of life proceeds in rounds: In each round the state of each cell is evaluated individually and then updated to an eventual new state. The most important feature of this system are the rules applied for assessing and updating the state of each individual cell: Based on the eight neighboring cells, it is determined if a cells environment is life promoting or overcrowded. Hence, the variable to determine and evaluate is the number of neighboring cells alive.
 
 \section{Design and Implementation}
-From the description of the game itself, some preliminary design drafts were sketched. Then a short litterature study about available implementations was conducted. Several programs of interest were found and inspected for inspiration \cite{golRosetta} \cite{golKTH} \cite{golPetascale}. 
+From the description of the game itself, some preliminary design drafts were sketched. Then a short literature study about available implementations was conducted. Several programs of interest were found and inspected for inspiration \cite{golRosetta} \cite{golKTH} \cite{golPetascale}. 
 To be flexible, it was decided to implement both randomized game start state and loading of a saved state from file. Because graphics programming was not the focus of this course a simple script in R \cite{rlanguage} was written for visual inspection of the game state after a number of generations. 
-`Foster's Methodology' as reproduced in the course litterature \cite[p. 66]{pacheco2011} was applied for designing the parallel program:
+`Foster's Methodology' as reproduced in the course literature \cite[p. 66]{pacheco2011} was applied for designing the parallel program:
 
 \begin{enumerate}
 \item Partitioning\\
-Two task were identified: Detecting the number of neighbours alive and updating the state for the next round. However, as it will be seen later, in the current case, it could make more sense to see the operations of each single cell as an individual task.
+Two task were identified: Detecting the number of neighbors alive and updating the state for the next round. However, as it will be seen later, in the current case, it could make more sense to see the operations of each single cell as an individual task.
 \item Communication\\
-The two first mentioned tasks above need to run in sequence and they also need to be concerted among the whole game. If a single cell is seen as an individual task, then the communication would be the step where the state of the neighbouring cells is determined. The cell is locally dependent to access the eight surrounding cells. 
+The two first mentioned tasks above need to run in sequence and they also need to be concerted among the whole game. If a single cell is seen as an individual task, then the communication would be the step where the state of the neighboring cells is determined. The cell is locally dependent to access the eight surrounding cells. 
 \item Agglomeration / Aggregation\\
-Agglomerating the individual tasks per cell seems to make sense as they adhere to a strict temporal run sequence. However more interesting is to consider agglomerating larger numbers of individual cells. As most of the cells would have eight neighbours within the group, they could be considered to be independent with a few exceptions for the cells on the interface/border. 
+Agglomerating the individual tasks per cell seems to make sense as they adhere to a strict temporal run sequence. However more interesting is to consider agglomerating larger numbers of individual cells. As most of the cells would have eight neighbors within the group, they could be considered to be independent with a few exceptions for the cells on the interface/border. 
 \item Mapping\\
 As the identified tasks are tightly coupled, it seems to make most sense to map larger agglomerates of cells to individual MPI nodes. Hence, communication during the game will be limited to handling the mentioned special cases of cells that are at the border of a local cell group. 
 \end{enumerate}
@@ -95,7 +95,7 @@ For the implementation it was decided to divide the global square field along ve
 This strategy resulted in a total of three tasks per game cycle:
 \begin{enumerate}
 \item update interface region
-\item determine number of neighbours alive
+\item determine number of neighbors alive
 \item update state
 \end{enumerate}
 
@@ -165,7 +165,7 @@ The mpi implementation was run on the HPC2N `Abisko' cluster. All timing runs in
   \label{fig:global}
 \end{figure}
 
-Table \ref{tab:result} shows a detailled numerical evaluation with obtained speedups ($S$), efficiencies ($E$) and absolute parallel overheads ($O$) for all configurations. Looking at the data, it sticks directly out that running two MPI processes obtained ideal speedups and efficiencies around 1 while for four MPI processes speedups and efficiencies dropped significantly. For higher even higher number of MPI processes two effects can be observed: At smaller game sizes, speedups are modest and efficiencies even drop. At larger game sizes, speedups get somewhat better again and efficiencies sometimes slightly increase or at least stay at the same level. The sharp break between two and four processes could partly be due to the intrinsic fact that the number of neighbours each process corresponds with increases here: Two processes always communicate only with 1 additional neighour as the game field folds over in both directions. For three and more processes, each process communicates always with two other processes.
+Table \ref{tab:result} shows a detailed numerical evaluation with obtained speedups ($S$), efficiencies ($E$) and absolute parallel overheads ($O$) for all configurations. Looking at the data, it sticks directly out that running two MPI processes obtained ideal speedups and efficiencies around 1 while for four MPI processes speedups and efficiencies dropped significantly. For higher even higher number of MPI processes two effects can be observed: At smaller game sizes, speedups are modest and efficiencies even drop. At larger game sizes, speedups get somewhat better again and efficiencies sometimes slightly increase or at least stay at the same level. The sharp break between two and four processes could partly be due to the intrinsic fact that the number of neighbors each process corresponds with increases here: Two processes always communicate only with 1 additional neighbor as the game field folds over in both directions. For three and more processes, each process communicates always with two other processes.
 
 
 \begin{table}[]
@@ -200,9 +200,9 @@ Table \ref{tab:result} shows a detailled numerical evaluation with obtained spee
 \end{table}
 
 
-Probably the degradation of speedups and efficiencies for larger number of processes is due to the very tight temporal synchronization of the game: It probably happens regulary that processes have to wait for each other due to the send/receives which are currently coded as individual events. Probably, some performance increase would be possible if one would change this communication to a collective communication strategy.
+Probably the degradation of speedups and efficiencies for larger number of processes is due to the very tight temporal synchronization of the game: It probably happens regularly that processes have to wait for each other due to the send/receives which are currently coded as individual events. Probably, some performance increase would be possible if one would change this communication to a collective communication strategy.
 
-However, when looking at the absolut parallel overhead times it can also be seen that they decrease with increasing size of the game field. This is a good sign and suggests that the application is at least weakly scalable in regard of the game field size. This would however not hold true for increasing the problem size by the number of generations to be calculated.
+However, when looking at the absolute parallel overhead times it can also be seen that they decrease with increasing size of the game field. This is a good sign and suggests that the application is at least weakly scalable in regard of the game field size. This would however not hold true for increasing the problem size by the number of generations to be calculated.
 
 
 
